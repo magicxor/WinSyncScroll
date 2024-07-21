@@ -18,3 +18,7 @@ SendMessage
 SetCursorPos
 keybd_event
 mouse_event
+CallWindowProcW
+IsWindowUnicode
+PostMessageW
+SendMessageW

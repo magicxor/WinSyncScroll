@@ -50,6 +50,7 @@
                 Margin="4,4,4,4"
                 ItemsSource="{Binding DataContext.WindowsOrdered, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                 DisplayMemberPath="DisplayName"
+                SelectedItem="{Binding DataContext.Source, Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
             />
             <Label Grid.Row="1" Grid.Column="0" Margin="4,4,4,4" Content="To:" Width="Auto" />
             <ComboBox
@@ -58,6 +59,7 @@
                 Margin="4,4,4,4"
                 ItemsSource="{Binding DataContext.WindowsOrdered, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                 DisplayMemberPath="DisplayName"
+                SelectedItem="{Binding DataContext.Target, Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
             />
         </Grid>
 
@@ -67,6 +69,7 @@
             Content="Start"
             Height="36px"
             Margin="4,4,4,4"
+            Command="{Binding StartCommand}"
         />
     </Grid>
 </Window>

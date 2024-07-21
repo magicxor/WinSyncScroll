@@ -5,8 +5,10 @@ public record WindowInfo(
     string ClassName,
     IntPtr WindowHandle,
     int ProcessId,
-    string ProcessName
+    string ProcessName,
+    WindowRect WindowRect
 )
 {
     public string DisplayName { get; } = $"{WindowName} [{ProcessName}, class: {ClassName}], pid: {ProcessId}, hwnd: {WindowHandle}";
+    public long WindowHandleLong { get; } = (long)WindowHandle;
 };

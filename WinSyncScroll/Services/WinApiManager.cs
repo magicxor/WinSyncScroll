@@ -28,7 +28,7 @@ public class WinApiManager
         _logger.LogDebug("Found {WindowCount} windows", windowHandles.Count);
 
         var windows = new List<WindowInfo>();
-        var currentProcessId = Environment.ProcessId;
+        var currentProcessId = Process.GetCurrentProcess().Id;
 
         foreach (var windowHandle in windowHandles)
         {
@@ -55,8 +55,21 @@ public class WinApiManager
                 var windowName = PInvoke.GetWindowText(windowHandle);
                 var process = Process.GetProcessById((int)processId);
                 var processName = process.ProcessName;
+                var isRectAvailable = PInvoke.GetWindowRect(windowHandle, out var rect);
+                var windowRect = new WindowRect
+                {
+                    Left = rect.left,
+                    Top = rect.top,
+                    Right = rect.right,
+                    Bottom = rect.bottom
+                };
 
                 if (string.IsNullOrWhiteSpace(windowName))
+                {
+                    continue;
+                }
+
+                if (!isRectAvailable)
                 {
                     continue;
                 }
@@ -66,7 +79,8 @@ public class WinApiManager
                     ClassName: className,
                     WindowHandle: windowHandle,
                     ProcessId: (int)processId,
-                    ProcessName: processName));
+                    ProcessName: processName,
+                    WindowRect: windowRect));
             }
             catch (Exception e)
             {

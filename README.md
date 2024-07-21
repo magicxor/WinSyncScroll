@@ -7,3 +7,4 @@ Scroll two windows simultaneously
 - https://github.com/microsoft/CsWin32
 - https://github.com/dahall/vanara
 - https://easyhook.github.io/
+- https://www.codeproject.com/Articles/6362/Global-System-Hooks-in-NET
