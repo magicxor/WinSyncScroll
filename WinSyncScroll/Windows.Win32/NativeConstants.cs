@@ -768,4 +768,116 @@ public partial class NativeConstants
 
     /// MOUSEEVENTF_MOVE -> 0x0001
     public const int MOUSEEVENTF_MOVE = 1;
+
+
+    /// ESB_DISABLE_RIGHT -> 0x0002
+    public const int ESB_DISABLE_RIGHT = 2;
+
+    /// IN_CLASSB_NSHIFT -> 16
+    public const int IN_CLASSB_NSHIFT = 16;
+
+    /// ESB_DISABLE_RTDN -> ESB_DISABLE_RIGHT
+    public const int ESB_DISABLE_RTDN = NativeConstants.ESB_DISABLE_RIGHT;
+
+    /// ESB_DISABLE_LTUP -> ESB_DISABLE_LEFT
+    public const int ESB_DISABLE_LTUP = NativeConstants.ESB_DISABLE_LEFT;
+
+    /// ESB_DISABLE_LEFT -> 0x0001
+    public const int ESB_DISABLE_LEFT = 1;
+
+    /// ESB_DISABLE_DOWN -> 0x0002
+    public const int ESB_DISABLE_DOWN = 2;
+
+    /// ESB_DISABLE_BOTH -> 0x0003
+    public const int ESB_DISABLE_BOTH = 3;
+
+    /// ESB_ENABLE_BOTH -> 0x0000
+    public const int ESB_ENABLE_BOTH = 0;
+
+    /// IN_CLASSB_HOST -> 0x0000ffff
+    public const int IN_CLASSB_HOST = 65535;
+
+    /// ESB_DISABLE_UP -> 0x0001
+    public const int ESB_DISABLE_UP = 1;
+
+    /// IN_CLASSB_NET -> 0xffff0000
+    public const int IN_CLASSB_NET = -65536;
+
+    /// IN_CLASSB_MAX -> 65536
+    public const int IN_CLASSB_MAX = 65536;
+
+    /// SB_THUMBPOSITION -> 4
+    public const int SB_THUMBPOSITION = 4;
+
+    /// SB_PREMULT_ALPHA -> 0x00000004
+    public const int SB_PREMULT_ALPHA = 4;
+
+    /// SB_PIXEL_ALPHA -> 0x00000002
+    public const int SB_PIXEL_ALPHA = 2;
+
+    /// SB_CONST_ALPHA -> 0x00000001
+    public const int SB_CONST_ALPHA = 1;
+
+    /// SB_THUMBTRACK -> 5
+    public const int SB_THUMBTRACK = 5;
+
+    /// SB_PAGERIGHT -> 3
+    public const int SB_PAGERIGHT = 3;
+
+    /// SB_LINERIGHT -> 1
+    public const int SB_LINERIGHT = 1;
+
+    /// SB_GRAD_RECT -> 0x00000010
+    public const int SB_GRAD_RECT = 16;
+
+    /// SB_ENDSCROLL -> 8
+    public const int SB_ENDSCROLL = 8;
+
+    /// SB_PAGELEFT -> 2
+    public const int SB_PAGELEFT = 2;
+
+    /// SB_PAGEDOWN -> 3
+    public const int SB_PAGEDOWN = 3;
+
+    /// SB_LINELEFT -> 0
+    public const int SB_LINELEFT = 0;
+
+    /// SB_LINEDOWN -> 1
+    public const int SB_LINEDOWN = 1;
+
+    /// SB_GRAD_TRI -> 0x00000020
+    public const int SB_GRAD_TRI = 32;
+
+    /// SB_PAGEUP -> 2
+    public const int SB_PAGEUP = 2;
+
+    /// SB_LINEUP -> 0
+    public const int SB_LINEUP = 0;
+
+    /// SB_BOTTOM -> 7
+    public const int SB_BOTTOM = 7;
+
+    /// SB_RIGHT -> 7
+    public const int SB_RIGHT = 7;
+
+    /// SB_VERT -> 1
+    public const int SB_VERT = 1;
+
+    /// SB_NONE -> 0x00000000
+    public const int SB_NONE = 0;
+
+    /// SB_LEFT -> 6
+    public const int SB_LEFT = 6;
+
+    /// SB_HORZ -> 0
+    public const int SB_HORZ = 0;
+
+    /// SB_BOTH -> 3
+    public const int SB_BOTH = 3;
+
+    /// SB_CTL -> 2
+    public const int SB_CTL = 2;
+
+    /// SB_TOP -> 6
+    public const int SB_TOP = 6;
 }

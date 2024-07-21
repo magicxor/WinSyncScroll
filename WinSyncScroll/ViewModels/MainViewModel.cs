@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Windows.Data;
 using Windows.Win32;
@@ -35,6 +36,8 @@ public partial class MainViewModel
     [Notify]
     private WindowInfo? _target { get; set; }
 
+    private object _eventProcessingLockObject = new();
+
     public MainViewModel(
         ILogger<MainViewModel> logger,
         WinApiManager winApiManager)
@@ -57,7 +60,13 @@ public partial class MainViewModel
         var newWindows = _winApiManager.ListWindows();
 
         var toBeRemoved = Windows
-            .Where(w => newWindows.All(nw => nw.WindowHandle != w.WindowHandle));
+            .Where(w => newWindows.All(nw => nw.WindowHandle != w.WindowHandle))
+            .ToList();
+
+        foreach (var window in toBeRemoved)
+        {
+            Windows.Remove(window);
+        }
 
         var toBeUpdated = Windows
             .Join(newWindows,
@@ -67,15 +76,8 @@ public partial class MainViewModel
                 {
                     OldWindow = w,
                     NewWindow = nw,
-                });
-
-        var toBeAdded = newWindows
-            .Where(nw => Windows.All(w => nw.WindowHandle != w.WindowHandle));
-
-        foreach (var window in toBeRemoved)
-        {
-            Windows.Remove(window);
-        }
+                })
+            .ToList();
 
         foreach (var windowToBeUpdated in toBeUpdated)
         {
@@ -86,15 +88,40 @@ public partial class MainViewModel
             }
         }
 
+        var toBeAdded = newWindows
+            .Where(nw => Windows.All(w => nw.WindowHandle != w.WindowHandle))
+            .ToList();
+
         foreach (var window in toBeAdded)
         {
             Windows.Add(window);
         }
     }
 
-    static IntPtr MakeLParam(int x, int y)
+    public static nuint CreateWParam(int hiWord, int loWord)
     {
-        return (IntPtr)((y << 16) | (x & 0xFFFF));
+        // Ensure the words fit within their respective 16-bit spaces
+        if (hiWord < 0 || hiWord > 0xFFFF)
+            throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
+        if (loWord < 0 || loWord > 0xFFFF)
+            throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
+
+        // Combine HIWORD and LOWORD into a single nuint value
+        nuint wParam = (nuint)((hiWord << 16) | (loWord & 0xFFFF));
+        return wParam;
+    }
+
+    public static nint CreateLParam(int hiWord, int loWord)
+    {
+        // Ensure the words fit within their respective 16-bit spaces
+        if (hiWord < 0 || hiWord > 0xFFFF)
+            throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
+        if (loWord < 0 || loWord > 0xFFFF)
+            throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
+
+        // Combine HIWORD and LOWORD into a single nint value
+        nint lParam = (hiWord << 16) | (loWord & 0xFFFF);
+        return lParam;
     }
 
     static int GetWheelDelta(nuint wParam)
@@ -125,43 +152,7 @@ public partial class MainViewModel
         var remoteObject = new CustomRemoteObject();
         remoteObject.InjectionEvent += (sender, eventArgs) => { _logger.LogInformation("Injected into {EventArgsClientProcessId}", eventArgs.ClientProcessId); };
         remoteObject.EntryPointEvent += (sender, eventArgs) => { _logger.LogInformation("Entry point event"); };
-        remoteObject.WindowProcEvent += (sender, eventArgs) =>
-        {
-            // _logger.LogTrace("WindowProc event: {SerializedArgs}", eventArgs.SerializedArgs);
-
-            var serializedArgs = eventArgs.SerializedArgs;
-            if (!string.IsNullOrWhiteSpace(serializedArgs)
-                && serializedArgs != null
-                && serializedArgs.Contains('{')
-                && serializedArgs.Contains('}'))
-            {
-                var parsedEventArgs = JsonConvert.DeserializeObject<ParsedWindowProcEventArgs>(serializedArgs);
-
-                if (parsedEventArgs != null)
-                {
-                    uint msg = uint.TryParse(parsedEventArgs.Msg, out var msgValue) ? msgValue : 0;
-                    nuint wParam = ulong.TryParse(parsedEventArgs.WParam, out var wParamValue) ? (nuint)wParamValue : 0;
-                    nint lParam = long.TryParse(parsedEventArgs.LParam, out var lParamValue) ? (nint)lParamValue : 0;
-
-                    var newLparam = MakeLParam(Target.WindowRect.Left + 10, Target.WindowRect.Top + 10);
-                    var delta = GetWheelDelta(wParam);
-
-                    _logger.LogTrace("Sending message: hWnd={WindowHandle}, msg={Msg}, wParam={WParam}, lParam={LParam}", Target.WindowHandle, msg, wParam, lParam);
-
-                    //PInvoke.SetForegroundWindow((HWND)Target.WindowHandle);
-                    //PInvoke.SetFocus((HWND)Target.WindowHandle);
-
-                    PInvoke.SendMessage((HWND)Target.WindowHandle, msg, 120, newLparam);
-                    PInvoke.PostMessage((HWND)Target.WindowHandle, msg, 120, newLparam);
-
-                    //PInvoke.SetForegroundWindow((HWND)Source.WindowHandle);
-                    //PInvoke.SetFocus((HWND)Source.WindowHandle);
-
-                    //PInvoke.mouse_event(MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL, Target.WindowRect.Left + 10, Target.WindowRect.Top + 10, delta, 0);
-
-                }
-            }
-        };
+        remoteObject.WindowProcEvent += RemoteObjectOnWindowProcEvent;
         remoteObject.LogMessageEvent += (sender, eventArgs) => { _logger.LogInformation("Log message event: {Message}", eventArgs.Message); };
         remoteObject.PingEvent += (sender, eventArgs) =>
         {
@@ -199,6 +190,98 @@ public partial class MainViewModel
             {
                 Console.WriteLine("Exit event received");
                 break;
+            }
+        }
+    }
+
+    private bool PointInRect(WindowRect windowRect, int x, int y)
+    {
+        return x >= windowRect.Left
+            && x <= windowRect.Right
+            && y >= windowRect.Top
+            && y <= windowRect.Bottom;
+    }
+
+    private void RemoteObjectOnWindowProcEvent(object sender, WindowProcEventArgs eventArgs)
+    {
+        lock (_eventProcessingLockObject)
+        {
+            var serializedArgs = eventArgs.SerializedArgs;
+            if (!string.IsNullOrWhiteSpace(serializedArgs)
+                && serializedArgs != null
+                && serializedArgs.Contains('{')
+                && serializedArgs.Contains('}'))
+            {
+                var parsedEventArgs = JsonConvert.DeserializeObject<ParsedWindowProcEventArgs>(serializedArgs);
+
+                if (parsedEventArgs != null)
+                {
+                    uint msg = uint.TryParse(parsedEventArgs.Msg, out var msgValue) ? msgValue : 0;
+                    nuint wParam = ulong.TryParse(parsedEventArgs.WParam, out var wParamValue) ? (nuint)wParamValue : 0;
+                    nint lParam = long.TryParse(parsedEventArgs.LParam, out var lParamValue) ? (nint)lParamValue : 0;
+
+                    if (msg is NativeConstants.WM_MOUSEWHEEL
+                        or NativeConstants.WM_MOUSEHWHEEL)
+                    {
+                        int scrollEventX = unchecked((short)(long)lParam);
+                        int scrollEventY = unchecked((short)((long)lParam >> 16));
+
+                        PInvoke.GetWindowRect((HWND)Source.WindowHandle, out var sourceRectStruct);
+                        var sourceRect = new WindowRect
+                        {
+                            Left = sourceRectStruct.left,
+                            Top = sourceRectStruct.top,
+                            Right = sourceRectStruct.right,
+                            Bottom = sourceRectStruct.bottom,
+                        };
+
+                        PInvoke.GetWindowRect((HWND)Target.WindowHandle, out var targetRectStruct);
+                        var targetRect = new WindowRect
+                        {
+                            Left = targetRectStruct.left,
+                            Top = targetRectStruct.top,
+                            Right = targetRectStruct.right,
+                            Bottom = targetRectStruct.bottom,
+                        };
+
+                        if (!PointInRect(sourceRect, scrollEventX, scrollEventY))
+                        {
+                            return;
+                        }
+
+                        var relativeX = scrollEventX - sourceRect.Left;
+                        var relativeY = scrollEventY - sourceRect.Top;
+
+                        var targetX = targetRect.Left + relativeX;
+                        var targetY = targetRect.Top + relativeY;
+
+                        var delta = GetWheelDelta(wParam);
+
+                        var input = new INPUT
+                        {
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                        };
+                        var dwFlags = msg switch
+                        {
+                            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL,
+                            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL,
+                            _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+                        };
+                        input.Anonymous.mi.dwFlags = dwFlags;
+                        input.Anonymous.mi.time = 0;
+                        input.Anonymous.mi.mouseData = (uint)delta;
+                        input.Anonymous.mi.dx = targetX;
+                        input.Anonymous.mi.dy = targetY;
+                        input.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
+
+                        var inputs = new[] { input };
+                        var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
+
+                        PInvoke.SetCursorPos(targetX, targetY);
+                        PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
+                        PInvoke.SetCursorPos(scrollEventX, scrollEventY);
+                    }
+                }
             }
         }
     }

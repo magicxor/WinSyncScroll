@@ -72,9 +72,7 @@ public class EntryPoint : IEntryPoint
         // self.SendLogMessageEvent($"CallWindowProc hook called; Msg: {msgStr}, WParam: {wParamStr}, LParam: {lParamStr}");
 
         if (msg is NativeConstants.WM_MOUSEWHEEL
-            or NativeConstants.WM_MOUSEHWHEEL
-            or NativeConstants.WM_NCHITTEST
-            or NativeConstants.WM_SETCURSOR)
+            or NativeConstants.WM_MOUSEHWHEEL)
         {
             self.SendWindowProcEventInfo($"{{ Msg: {msgStr}, WParam: {wParamStr}, LParam: {lParamStr} }}");
         }

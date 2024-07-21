@@ -15,6 +15,7 @@ SetFocus
 AttachThreadInput
 PostMessage
 SendMessage
+GetCursorPos
 SetCursorPos
 keybd_event
 mouse_event
@@ -22,3 +23,5 @@ CallWindowProcW
 IsWindowUnicode
 PostMessageW
 SendMessageW
+SendInput
+GetMessageExtraInfo
