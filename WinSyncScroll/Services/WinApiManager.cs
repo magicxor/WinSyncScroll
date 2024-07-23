@@ -17,6 +17,8 @@ public class WinApiManager
 
     public List<WindowInfo> ListWindows()
     {
+        _logger.LogTrace("Listing windows");
+
         var windowHandles = new List<HWND>();
 
         PInvoke.EnumWindows((handle, _) =>
@@ -28,7 +30,8 @@ public class WinApiManager
         _logger.LogDebug("Found {WindowCount} windows", windowHandles.Count);
 
         var windows = new List<WindowInfo>();
-        var currentProcessId = Process.GetCurrentProcess().Id;
+        using var currentProcess = Process.GetCurrentProcess();
+        var currentProcessId = currentProcess.Id;
 
         foreach (var windowHandle in windowHandles)
         {
@@ -40,7 +43,7 @@ public class WinApiManager
                     continue;
                 }
 
-                var (threadId, processId) = PInvoke.GetWindowThreadProcessId(windowHandle);
+                var (_, processId) = PInvoke.GetWindowThreadProcessId(windowHandle);
                 if (processId == 0)
                 {
                     _logger.LogWarning("Failed to get process ID for window with handle {WindowHandle}", windowHandle);

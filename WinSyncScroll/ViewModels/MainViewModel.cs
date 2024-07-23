@@ -1,51 +1,60 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting;
+using System.Threading.Channels;
 using System.Windows.Data;
 using Windows.Win32;
-using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using CommunityToolkit.Mvvm.Input;
-using EasyHook;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using PropertyChanged.SourceGenerator;
-using WinSyncScroll.Hook;
-using WinSyncScroll.Hook.EventArguments;
+using WinSyncScroll.Enums;
 using WinSyncScroll.Models;
 using WinSyncScroll.Services;
+using HWND = Windows.Win32.Foundation.HWND;
 
 namespace WinSyncScroll.ViewModels;
 
-public partial class MainViewModel
+public sealed partial class MainViewModel : IDisposable
 {
     private readonly ILogger<MainViewModel> _logger;
     private readonly WinApiManager _winApiManager;
+    private readonly MouseHook _mouseHook;
 
+    // ReSharper disable once MemberCanBePrivate.Global
     public ObservableCollection<WindowInfo> Windows { get; } = [];
+
+    // ReSharper disable once MemberCanBePrivate.Global
     public ICollectionView WindowsOrdered { get; }
 
     public RelayCommand RefreshWindowsCommand { get; }
     public RelayCommand StartCommand { get; }
+    public RelayCommand StopCommand { get; }
 
     [Notify]
+    // ReSharper disable once InconsistentNaming
     private WindowInfo? _source { get; set; }
 
     [Notify]
+    // ReSharper disable once InconsistentNaming
     private WindowInfo? _target { get; set; }
 
-    private object _eventProcessingLockObject = new();
+    private AppState _appState = AppState.NotRunning;
+    private Task? _mouseEventProcessingLoopTask;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public MainViewModel(
         ILogger<MainViewModel> logger,
-        WinApiManager winApiManager)
+        WinApiManager winApiManager,
+        MouseHook mouseHook)
     {
         _logger = logger;
         _winApiManager = winApiManager;
+        _mouseHook = mouseHook;
+
         RefreshWindowsCommand = new RelayCommand(RefreshWindows);
         StartCommand = new RelayCommand(Start);
+        StopCommand = new RelayCommand(Stop);
 
         WindowsOrdered = CollectionViewSource.GetDefaultView(Windows);
         WindowsOrdered.SortDescriptions.Add(new SortDescription(nameof(WindowInfo.WindowName), ListSortDirection.Ascending));
@@ -55,10 +64,140 @@ public partial class MainViewModel
         WindowsOrdered.SortDescriptions.Add(new SortDescription(nameof(WindowInfo.WindowHandleLong), ListSortDirection.Ascending));
     }
 
+    private void InstallMouseHook()
+    {
+        _mouseHook.Install();
+
+        var token = _cancellationTokenSource.Token;
+        _mouseEventProcessingLoopTask = Task.Run(async () =>
+            await RunMouseEventProcessingLoopAsync(_mouseHook.HookEvents, token),
+            token);
+    }
+
+    private async Task RunMouseEventProcessingLoopAsync(
+        Channel<MouseEventArgs> channel,
+        CancellationToken cancellationToken = default)
+    {
+        while (await channel.Reader.WaitToReadAsync(cancellationToken))
+        {
+            while (channel.Reader.TryRead(out var buffer))
+            {
+                try
+                {
+                    if (_appState != AppState.Running)
+                    {
+                        _logger.LogTrace("App is not running, skipping mouse event processing");
+                        continue;
+                    }
+                    
+                    if (Source is null)
+                    {
+                        _logger.LogTrace("Source window is not selected, skipping mouse event processing");
+                        continue;
+                    }
+
+                    if (Target is null)
+                    {
+                        _logger.LogTrace("Target window is not selected, skipping mouse event processing");
+                        continue;
+                    }
+
+                    if (buffer.MouseMessageId is not
+                        (NativeConstants.WM_MOUSEWHEEL
+                        or NativeConstants.WM_MOUSEHWHEEL))
+                    {
+                        _logger.LogTrace("Skipping non-scroll mouse event");
+                        continue;
+                    }
+
+                    var scrollEventX = buffer.MouseMessageData.pt.X;
+                    var scrollEventY = buffer.MouseMessageData.pt.Y;
+
+                    PInvoke.GetWindowRect((HWND)Source.WindowHandle, out var sourceRectStruct);
+                    var sourceRect = new WindowRect
+                    {
+                        Left = sourceRectStruct.left,
+                        Top = sourceRectStruct.top,
+                        Right = sourceRectStruct.right,
+                        Bottom = sourceRectStruct.bottom,
+                    };
+
+                    PInvoke.GetWindowRect((HWND)Target.WindowHandle, out var targetRectStruct);
+                    var targetRect = new WindowRect
+                    {
+                        Left = targetRectStruct.left,
+                        Top = targetRectStruct.top,
+                        Right = targetRectStruct.right,
+                        Bottom = targetRectStruct.bottom,
+                    };
+
+                    if (!NativeNumberUtils.PointInRect(sourceRect, scrollEventX, scrollEventY))
+                    {
+                        _logger.LogTrace("Mouse event is not in the source window, skipping");
+                        continue;
+                    }
+
+                    var relativeX = scrollEventX - sourceRect.Left;
+                    var relativeY = scrollEventY - sourceRect.Top;
+
+                    var targetX = targetRect.Left + relativeX;
+                    var targetY = targetRect.Top + relativeY;
+
+                    if (!NativeNumberUtils.PointInRect(targetRect, targetX, targetY))
+                    {
+                        _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
+                        targetX = targetRect.Left + targetRect.Right / 2;
+                        targetY = targetRect.Top + targetRect.Bottom / 2;
+                    }
+
+                    // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
+                    var (_, high) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
+                    var delta = high;
+
+                    var input = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    var dwFlags = buffer.MouseMessageId switch
+                    {
+                        NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL,
+                        NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL,
+                        _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+                    };
+                    input.Anonymous.mi.dwFlags = dwFlags;
+                    input.Anonymous.mi.time = 0;
+                    input.Anonymous.mi.mouseData = (uint)delta;
+                    input.Anonymous.mi.dx = targetX;
+                    input.Anonymous.mi.dy = targetY;
+
+                    PInvoke.SetCursorPos(targetX, targetY);
+                    input.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
+
+                    var inputs = new[] { input };
+                    var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
+
+                    PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
+                    PInvoke.SetCursorPos(scrollEventX, scrollEventY);
+
+                    _logger.LogTrace("Successfully processed mouse event");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error processing mouse event");
+                }
+            }
+        }
+    }
+
     private void RefreshWindows()
     {
         var newWindows = _winApiManager.ListWindows();
 
+        // remember the old windows to replace them with the new ones
+        var oldSource = Source;
+        var oldTarget = Target;
+
+        // remove windows that are not in the new list
         var toBeRemoved = Windows
             .Where(w => newWindows.All(nw => nw.WindowHandle != w.WindowHandle))
             .ToList();
@@ -68,6 +207,7 @@ public partial class MainViewModel
             Windows.Remove(window);
         }
 
+        // update windows that are in the new list
         var toBeUpdated = Windows
             .Join(newWindows,
                 w => w.WindowHandle,
@@ -88,6 +228,7 @@ public partial class MainViewModel
             }
         }
 
+        // add windows that are not in the old list
         var toBeAdded = newWindows
             .Where(nw => Windows.All(w => nw.WindowHandle != w.WindowHandle))
             .ToList();
@@ -96,42 +237,23 @@ public partial class MainViewModel
         {
             Windows.Add(window);
         }
+
+        // restore the old source and target windows
+        if (oldSource != null)
+        {
+            Source = Windows.FirstOrDefault(w => w.WindowHandle == oldSource.WindowHandle);
+        }
+
+        if (oldTarget != null)
+        {
+            Target = Windows.FirstOrDefault(w => w.WindowHandle == oldTarget.WindowHandle);
+        }
     }
 
-    public static nuint CreateWParam(int hiWord, int loWord)
+    public void Initialize()
     {
-        // Ensure the words fit within their respective 16-bit spaces
-        if (hiWord < 0 || hiWord > 0xFFFF)
-            throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
-        if (loWord < 0 || loWord > 0xFFFF)
-            throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
-
-        // Combine HIWORD and LOWORD into a single nuint value
-        nuint wParam = (nuint)((hiWord << 16) | (loWord & 0xFFFF));
-        return wParam;
-    }
-
-    public static nint CreateLParam(int hiWord, int loWord)
-    {
-        // Ensure the words fit within their respective 16-bit spaces
-        if (hiWord < 0 || hiWord > 0xFFFF)
-            throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
-        if (loWord < 0 || loWord > 0xFFFF)
-            throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
-
-        // Combine HIWORD and LOWORD into a single nint value
-        nint lParam = (hiWord << 16) | (loWord & 0xFFFF);
-        return lParam;
-    }
-
-    static int GetWheelDelta(nuint wParam)
-    {
-        return (short)(wParam >> 16);
-    }
-
-    static bool IsKeyDown(nuint wParam, int key)
-    {
-        return (wParam & (nuint)key) != 0;
+        InstallMouseHook();
+        RefreshWindows();
     }
 
     private void Start()
@@ -139,150 +261,47 @@ public partial class MainViewModel
         if (Source == null || Target == null)
         {
             _logger.LogWarning("Source or target window is not selected: Source={Source}, Target={Target}", Source, Target);
-            return;
         }
         else
         {
-            _logger.LogInformation("Starting sync between \"{SourceWindow}\" and \"{TargetWindow}\"", Source.DisplayName, Target.DisplayName);
-        }
-
-        DateTime? latestPing = null;
-        bool exited = false;
-
-        var remoteObject = new CustomRemoteObject();
-        remoteObject.InjectionEvent += (sender, eventArgs) => { _logger.LogInformation("Injected into {EventArgsClientProcessId}", eventArgs.ClientProcessId); };
-        remoteObject.EntryPointEvent += (sender, eventArgs) => { _logger.LogInformation("Entry point event"); };
-        remoteObject.WindowProcEvent += RemoteObjectOnWindowProcEvent;
-        remoteObject.LogMessageEvent += (sender, eventArgs) => { _logger.LogInformation("Log message event: {Message}", eventArgs.Message); };
-        remoteObject.PingEvent += (sender, eventArgs) =>
-        {
-            _logger.LogTrace("Ping event");
-            latestPing = DateTime.UtcNow;
-        };
-        remoteObject.ExitEvent += (sender, eventArgs) =>
-        {
-            _logger.LogInformation("Exit event");
-            exited = true;
-        };
-        remoteObject.ExceptionEvent += (sender, eventArgs) => { _logger.LogError("Exception event ({EventId}): {Message}. Exception={SerializedException}", eventArgs.EventId, eventArgs.Message, eventArgs.SerializedException); };
-
-        string? channelName = null;
-        var ipcServerChannel = RemoteHooking.IpcCreateServer<CustomRemoteObject>(ref channelName, WellKnownObjectMode.Singleton, remoteObject);
-
-        var parameter = new EntryPointParameters
-        {
-            Message = "hello world",
-            HostProcessId = RemoteHooking.GetCurrentProcessId(),
-        };
-
-        var processId = Source.ProcessId;
-        RemoteHooking.Inject(processId,
-            InjectionOptions.Default | InjectionOptions.DoNotRequireStrongName,
-            typeof(EntryPointParameters).Assembly.Location,
-            typeof(EntryPointParameters).Assembly.Location,
-            channelName,
-            parameter);
-
-        while (!exited)
-        {
-            Thread.Sleep(TimeSpan.FromMilliseconds(100));
-            if (exited)
-            {
-                Console.WriteLine("Exit event received");
-                break;
-            }
+            _logger.LogInformation("Starting scroll sync between \"{SourceWindow}\" and \"{TargetWindow}\"", Source.DisplayName, Target.DisplayName);
+            _appState = AppState.Running;
         }
     }
 
-    private bool PointInRect(WindowRect windowRect, int x, int y)
+    private void Stop()
     {
-        return x >= windowRect.Left
-            && x <= windowRect.Right
-            && y >= windowRect.Top
-            && y <= windowRect.Bottom;
+        _appState = AppState.NotRunning;
     }
 
-    private void RemoteObjectOnWindowProcEvent(object sender, WindowProcEventArgs eventArgs)
+    public void HandleWindowClosing()
     {
-        lock (_eventProcessingLockObject)
+        _mouseHook.Uninstall();
+        _appState = AppState.NotRunning;
+        try
         {
-            var serializedArgs = eventArgs.SerializedArgs;
-            if (!string.IsNullOrWhiteSpace(serializedArgs)
-                && serializedArgs != null
-                && serializedArgs.Contains('{')
-                && serializedArgs.Contains('}'))
-            {
-                var parsedEventArgs = JsonConvert.DeserializeObject<ParsedWindowProcEventArgs>(serializedArgs);
-
-                if (parsedEventArgs != null)
-                {
-                    uint msg = uint.TryParse(parsedEventArgs.Msg, out var msgValue) ? msgValue : 0;
-                    nuint wParam = ulong.TryParse(parsedEventArgs.WParam, out var wParamValue) ? (nuint)wParamValue : 0;
-                    nint lParam = long.TryParse(parsedEventArgs.LParam, out var lParamValue) ? (nint)lParamValue : 0;
-
-                    if (msg is NativeConstants.WM_MOUSEWHEEL
-                        or NativeConstants.WM_MOUSEHWHEEL)
-                    {
-                        int scrollEventX = unchecked((short)(long)lParam);
-                        int scrollEventY = unchecked((short)((long)lParam >> 16));
-
-                        PInvoke.GetWindowRect((HWND)Source.WindowHandle, out var sourceRectStruct);
-                        var sourceRect = new WindowRect
-                        {
-                            Left = sourceRectStruct.left,
-                            Top = sourceRectStruct.top,
-                            Right = sourceRectStruct.right,
-                            Bottom = sourceRectStruct.bottom,
-                        };
-
-                        PInvoke.GetWindowRect((HWND)Target.WindowHandle, out var targetRectStruct);
-                        var targetRect = new WindowRect
-                        {
-                            Left = targetRectStruct.left,
-                            Top = targetRectStruct.top,
-                            Right = targetRectStruct.right,
-                            Bottom = targetRectStruct.bottom,
-                        };
-
-                        if (!PointInRect(sourceRect, scrollEventX, scrollEventY))
-                        {
-                            return;
-                        }
-
-                        var relativeX = scrollEventX - sourceRect.Left;
-                        var relativeY = scrollEventY - sourceRect.Top;
-
-                        var targetX = targetRect.Left + relativeX;
-                        var targetY = targetRect.Top + relativeY;
-
-                        var delta = GetWheelDelta(wParam);
-
-                        var input = new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                        };
-                        var dwFlags = msg switch
-                        {
-                            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL,
-                            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL,
-                            _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
-                        };
-                        input.Anonymous.mi.dwFlags = dwFlags;
-                        input.Anonymous.mi.time = 0;
-                        input.Anonymous.mi.mouseData = (uint)delta;
-                        input.Anonymous.mi.dx = targetX;
-                        input.Anonymous.mi.dy = targetY;
-                        input.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
-
-                        var inputs = new[] { input };
-                        var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
-
-                        PInvoke.SetCursorPos(targetX, targetY);
-                        PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
-                        PInvoke.SetCursorPos(scrollEventX, scrollEventY);
-                    }
-                }
-            }
+            _cancellationTokenSource.Cancel();
         }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error cancelling the cancellation token source");
+        }
+    }
+
+    public void Dispose()
+    {
+        _appState = AppState.NotRunning;
+        try
+        {
+            _cancellationTokenSource.Cancel();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error cancelling the cancellation token source");
+        }
+
+        _mouseEventProcessingLoopTask?.Dispose();
+        _mouseHook.Dispose();
+        _cancellationTokenSource.Dispose();
     }
 }

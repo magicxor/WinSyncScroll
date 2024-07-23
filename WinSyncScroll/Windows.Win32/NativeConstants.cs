@@ -3,7 +3,7 @@
 
 namespace Windows.Win32;
 
-public partial class NativeConstants
+public class NativeConstants
 {
     /// HELP_WM_HELP -> 0x000c
     public const int HELP_WM_HELP = 12;
@@ -880,4 +880,73 @@ public partial class NativeConstants
 
     /// SB_TOP -> 6
     public const int SB_TOP = 6;
+
+    /// X3_D_WH_INST_WORD_POS_X -> 24
+    public const int X3_D_WH_INST_WORD_POS_X = 24;
+
+    /// X3_D_WH_SIGN_VAL_POS_X -> 0
+    public const int X3_D_WH_SIGN_VAL_POS_X = 0;
+
+    /// X3_D_WH_INST_WORD_X -> 3
+    public const int X3_D_WH_INST_WORD_X = 3;
+
+    /// X3_D_WH_SIZE_X -> 3
+    public const int X3_D_WH_SIZE_X = 3;
+
+    /// WH_JOURNALPLAYBACK -> 1
+    public const int WH_JOURNALPLAYBACK = 1;
+
+    /// WH_FOREGROUNDIDLE -> 11
+    public const int WH_FOREGROUNDIDLE = 11;
+
+    /// WH_CALLWNDPROCRET -> 12
+    public const int WH_CALLWNDPROCRET = 12;
+
+    /// WH_JOURNALRECORD -> 0
+    public const int WH_JOURNALRECORD = 0;
+
+    /// WH_SYSMSGFILTER -> 6
+    public const int WH_SYSMSGFILTER = 6;
+
+    /// WH_KEYBOARD_LL -> 13
+    public const int WH_KEYBOARD_LL = 13;
+
+    /// WH_CALLWNDPROC -> 4
+    public const int WH_CALLWNDPROC = 4;
+
+    /// WH_GETMESSAGE -> 3
+    public const int WH_GETMESSAGE = 3;
+
+    /// WH_MSGFILTER -> (-1)
+    public const int WH_MSGFILTER = -1;
+
+    /// WH_MOUSE_LL -> 14
+    public const int WH_MOUSE_LL = 14;
+
+    /// WH_KEYBOARD -> 2
+    public const int WH_KEYBOARD = 2;
+
+    /// WH_MINHOOK -> WH_MIN
+    public const int WH_MINHOOK = NativeConstants.WH_MIN;
+
+    /// WH_MAXHOOK -> WH_MAX
+    public const int WH_MAXHOOK = NativeConstants.WH_MAX;
+
+    /// WH_SHELL -> 10
+    public const int WH_SHELL = 10;
+
+    /// WH_MOUSE -> 7
+    public const int WH_MOUSE = 7;
+
+    /// WH_DEBUG -> 9
+    public const int WH_DEBUG = 9;
+
+    /// WH_MAX -> 14
+    public const int WH_MAX = 14;
+
+    /// WH_CBT -> 5
+    public const int WH_CBT = 5;
+
+    /// WH_MIN -> (-1)
+    public const int WH_MIN = -1;
 }

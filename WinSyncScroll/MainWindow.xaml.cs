@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using WinSyncScroll.ViewModels;
 
 namespace WinSyncScroll;
@@ -17,5 +18,15 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         DataContext = _viewModel;
+    }
+
+    private void WindowLoaded(object sender, RoutedEventArgs e)
+    {
+        _viewModel.Initialize();
+    }
+
+    private void WindowClosing(object sender, CancelEventArgs e)
+    {
+        _viewModel.HandleWindowClosing();
     }
 }
