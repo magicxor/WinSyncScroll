@@ -31,3 +31,4 @@ CallNextHookEx
 GetModuleHandleW
 GetSystemMetrics
 WindowFromPoint
+IsIconic

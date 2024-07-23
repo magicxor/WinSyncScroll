@@ -199,12 +199,12 @@ public sealed partial class MainViewModel : IDisposable
                             continue;
                         }
 
-                        var scrolledWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
-                        var (_, processId, _) = PInvoke.GetWindowThreadProcessId(scrolledWindowHwnd);
+                        var actualSourceWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
+                        var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
 
-                        if (processId != Source.ProcessId)
+                        if (actualSourceProcessId != Source.ProcessId)
                         {
-                            _logger.LogTrace("Scrolled window does not belong to the source process, skipping");
+                            _logger.LogTrace("Actual source window does not belong to the selected source process, skipping");
                             continue;
                         }
 
@@ -235,6 +235,15 @@ public sealed partial class MainViewModel : IDisposable
                             _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
                             targetX = targetRect.Left + targetRect.Right / 2;
                             targetY = targetRect.Top + targetRect.Bottom / 2;
+                        }
+
+                        var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
+                        var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
+
+                        if (actualTargetWindowProcessId != Target.ProcessId)
+                        {
+                            _logger.LogTrace("Actual target window does not belong to the selected target process, skipping");
+                            continue;
                         }
 
                         // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
