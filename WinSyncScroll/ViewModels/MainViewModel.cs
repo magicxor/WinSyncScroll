@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using System.Windows.Data;
+using System.Windows.Media;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -41,7 +42,27 @@ public sealed partial class MainViewModel : IDisposable
     // ReSharper disable once InconsistentNaming
     private WindowInfo? _target { get; set; }
 
+    [Notify]
     private AppState _appState = AppState.NotRunning;
+
+    public bool IsRefreshButtonEnabled => AppState == AppState.NotRunning;
+
+    public bool IsStartButtonEnabled => AppState == AppState.NotRunning && Source != null && Target != null;
+
+    public bool IsStopButtonEnabled => AppState == AppState.Running;
+
+    public Brush RefreshButtonSvgColor => IsRefreshButtonEnabled
+        ? Brushes.Black
+        : Brushes.DimGray;
+
+    public Brush StartButtonSvgColor => IsStartButtonEnabled
+        ? Brushes.Black
+        : Brushes.DimGray;
+
+    public Brush StopButtonSvgColor => IsStopButtonEnabled
+        ? Brushes.Black
+        : Brushes.DimGray;
+
     private Task? _mouseEventProcessingLoopTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -93,7 +114,7 @@ public sealed partial class MainViewModel : IDisposable
                 {
                     try
                     {
-                        if (_appState != AppState.Running)
+                        if (AppState != AppState.Running)
                         {
                             _logger.LogTrace("App is not running, skipping mouse event processing");
                             continue;
@@ -243,7 +264,7 @@ public sealed partial class MainViewModel : IDisposable
                     }
                 }
 
-                if (_appState != AppState.Running)
+                if (AppState != AppState.Running)
                 {
                     _logger.LogTrace("App is not running, skipping mouse event processing");
                     continue;
@@ -343,19 +364,19 @@ public sealed partial class MainViewModel : IDisposable
         else
         {
             _logger.LogInformation("Starting scroll sync between \"{SourceWindow}\" and \"{TargetWindow}\"", Source.DisplayName, Target.DisplayName);
-            _appState = AppState.Running;
+            AppState = AppState.Running;
         }
     }
 
     private void Stop()
     {
-        _appState = AppState.NotRunning;
+        AppState = AppState.NotRunning;
     }
 
     public void HandleWindowClosing()
     {
         _mouseHook.Uninstall();
-        _appState = AppState.NotRunning;
+        AppState = AppState.NotRunning;
         try
         {
             _cancellationTokenSource.Cancel();
@@ -368,7 +389,7 @@ public sealed partial class MainViewModel : IDisposable
 
     public void Dispose()
     {
-        _appState = AppState.NotRunning;
+        AppState = AppState.NotRunning;
         try
         {
             _cancellationTokenSource.Cancel();
