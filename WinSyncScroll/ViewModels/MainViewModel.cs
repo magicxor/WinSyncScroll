@@ -243,6 +243,12 @@ public sealed partial class MainViewModel : IDisposable
                     }
                 }
 
+                if (_appState != AppState.Running)
+                {
+                    _logger.LogTrace("App is not running, skipping mouse event processing");
+                    continue;
+                }
+
                 Thread.Sleep(1);
                 if (sourceRect is not null
                     && prevCursorPosX.HasValue
