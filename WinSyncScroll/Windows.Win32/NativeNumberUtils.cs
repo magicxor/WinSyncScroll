@@ -1,6 +1,5 @@
 ﻿// ReSharper disable CheckNamespace
 
-using Windows.Win32.UI.WindowsAndMessaging;
 using WinSyncScroll.Models;
 
 namespace Windows.Win32;
