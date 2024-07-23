@@ -100,6 +100,44 @@ public sealed partial class MainViewModel : IDisposable
             token);
     }
 
+    private static INPUT CreateScrollInput(nuint mouseMessageId, int absoluteX, int absoluteY, short delta)
+    {
+        var inputScroll = new INPUT
+        {
+            type = INPUT_TYPE.INPUT_MOUSE,
+        };
+        var dwFlags = mouseMessageId switch
+        {
+            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+        };
+        inputScroll.Anonymous.mi.dwFlags = dwFlags;
+        inputScroll.Anonymous.mi.time = 0;
+        inputScroll.Anonymous.mi.mouseData = (uint)delta;
+        inputScroll.Anonymous.mi.dx = absoluteX;
+        inputScroll.Anonymous.mi.dy = absoluteY;
+        inputScroll.Anonymous.mi.dwExtraInfo = MouseHook.InjectedEventMagicNumber;
+
+        return inputScroll;
+    }
+
+    private static INPUT CreateMoveInput(int absoluteX, int absoluteY)
+    {
+        var inputMove = new INPUT
+        {
+            type = INPUT_TYPE.INPUT_MOUSE,
+        };
+        inputMove.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE;
+        inputMove.Anonymous.mi.time = 0;
+        inputMove.Anonymous.mi.mouseData = 0;
+        inputMove.Anonymous.mi.dx = absoluteX;
+        inputMove.Anonymous.mi.dy = absoluteY;
+        inputMove.Anonymous.mi.dwExtraInfo = MouseHook.InjectedEventMagicNumber;
+
+        return inputMove;
+    }
+
     private async Task RunMouseEventProcessingLoopAsync(
         Channel<MouseEventArgs> channel,
         CancellationToken cancellationToken = default)
@@ -200,8 +238,7 @@ public sealed partial class MainViewModel : IDisposable
                         }
 
                         // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
-                        var (_, high) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
-                        var delta = high;
+                        var (_, delta) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
 
                         var smCxScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
                         var smCyScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
@@ -210,53 +247,11 @@ public sealed partial class MainViewModel : IDisposable
                         var targetAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetX, smCxScreen);
                         var targetAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetY, smCyScreen);
 
-                        var inputMove1 = new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                        };
-                        inputMove1.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                        inputMove1.Anonymous.mi.time = 0;
-                        inputMove1.Anonymous.mi.mouseData = 0;
-                        inputMove1.Anonymous.mi.dx = targetAbsoluteX;
-                        inputMove1.Anonymous.mi.dy = targetAbsoluteY;
+                        var inputMoveToTarget = CreateMoveInput(targetAbsoluteX, targetAbsoluteY);
+                        var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, delta);
+                        var inputMoveToSource = CreateMoveInput(sourceAbsoluteX, sourceAbsoluteY);
 
-                        var inputScroll = new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                        };
-                        var dwFlags = buffer.MouseMessageId switch
-                        {
-                            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
-                            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
-                            _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
-                        };
-                        inputScroll.Anonymous.mi.dwFlags = dwFlags;
-                        inputScroll.Anonymous.mi.time = 0;
-                        inputScroll.Anonymous.mi.mouseData = (uint)delta;
-                        inputScroll.Anonymous.mi.dx = targetAbsoluteX;
-                        inputScroll.Anonymous.mi.dy = targetAbsoluteY;
-
-                        var inputMove3 = new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                        };
-                        inputMove3.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                        inputMove3.Anonymous.mi.time = 0;
-                        inputMove3.Anonymous.mi.mouseData = 0;
-                        inputMove3.Anonymous.mi.dx = sourceAbsoluteX + 1;
-                        inputMove3.Anonymous.mi.dy = sourceAbsoluteY + 1;
-
-                        var inputMove5 = new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                        };
-                        inputMove5.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                        inputMove5.Anonymous.mi.time = 0;
-                        inputMove5.Anonymous.mi.mouseData = 0;
-                        inputMove5.Anonymous.mi.dx = sourceAbsoluteX;
-                        inputMove5.Anonymous.mi.dy = sourceAbsoluteY;
-
-                        var inputs = new[] { inputMove1, inputScroll, inputMove3, inputMove5 };
+                        var inputs = new[] { inputMoveToTarget, inputScrollTarget, inputMoveToSource };
                         var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
                         PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);

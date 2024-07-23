@@ -22,6 +22,8 @@ public sealed class MouseHook : IDisposable
     private FreeLibrarySafeHandle? _moduleHandle;
     private HOOKPROC? _hookProc;
 
+    public const int InjectedEventMagicNumber = 520165553;
+
     public MouseHook(ILogger<MouseHook> logger)
     {
         _logger = logger;
@@ -82,6 +84,15 @@ public sealed class MouseHook : IDisposable
             else
             {
                 var mouseLowLevelData = (User32.MSLLHOOKSTRUCT)mouseLowLevelDataObj;
+
+                if (mouseLowLevelData.dwExtraInfo == InjectedEventMagicNumber)
+                {
+                    // todo: use this to detect injected events
+                    // Console.WriteLine("Injected event detected");
+                }
+
+                // prevent the system from passing the message to the rest of the hook chain or the target window procedure
+                // return (LRESULT)1;
 
                 HookEvents.Writer.TryWrite(new MouseEventArgs
                 {
