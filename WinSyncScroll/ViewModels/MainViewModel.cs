@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using System.Windows.Data;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
+using Windows.Win32.UI.WindowsAndMessaging;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PropertyChanged.SourceGenerator;
@@ -162,54 +163,83 @@ public sealed partial class MainViewModel : IDisposable
                     var (_, high) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
                     var delta = high;
 
-                    var input = new INPUT
+                    var smCxScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
+                    var smCyScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
+                    var sourceAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventX, smCxScreen);
+                    var sourceAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventY, smCyScreen);
+                    var targetAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetX, smCxScreen);
+                    var targetAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetY, smCyScreen);
+
+                    var inputMove1 = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    inputMove1.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                    inputMove1.Anonymous.mi.time = 0;
+                    inputMove1.Anonymous.mi.mouseData = 0;
+                    inputMove1.Anonymous.mi.dx = targetAbsoluteX;
+                    inputMove1.Anonymous.mi.dy = targetAbsoluteY;
+
+                    var inputScroll = new INPUT
                     {
                         type = INPUT_TYPE.INPUT_MOUSE,
                     };
                     var dwFlags = buffer.MouseMessageId switch
                     {
-                        NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL,
-                        NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL,
+                        NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                        NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
                         _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
                     };
-                    input.Anonymous.mi.dwFlags = dwFlags;
-                    input.Anonymous.mi.time = 0;
-                    input.Anonymous.mi.mouseData = (uint)delta;
-                    input.Anonymous.mi.dx = targetX;
-                    input.Anonymous.mi.dy = targetY;
-                    input.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
+                    inputScroll.Anonymous.mi.dwFlags = dwFlags;
+                    inputScroll.Anonymous.mi.time = 0;
+                    inputScroll.Anonymous.mi.mouseData = (uint)delta;
+                    inputScroll.Anonymous.mi.dx = targetAbsoluteX;
+                    inputScroll.Anonymous.mi.dy = targetAbsoluteY;
+                    
+                    var inputMove2 = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    inputMove2.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                    inputMove2.Anonymous.mi.time = 0;
+                    inputMove2.Anonymous.mi.mouseData = 0;
+                    inputMove2.Anonymous.mi.dx = sourceAbsoluteX;
+                    inputMove2.Anonymous.mi.dy = sourceAbsoluteY;
+                    
+                    var inputMove3 = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    inputMove3.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                    inputMove3.Anonymous.mi.time = 0;
+                    inputMove3.Anonymous.mi.mouseData = 0;
+                    inputMove3.Anonymous.mi.dx = sourceAbsoluteX + 1;
+                    inputMove3.Anonymous.mi.dy = sourceAbsoluteY + 1;
+                    
+                    var inputMove4 = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    inputMove4.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE;
+                    inputMove4.Anonymous.mi.time = 0;
+                    inputMove4.Anonymous.mi.mouseData = 0;
+                    inputMove4.Anonymous.mi.dx = 1;
+                    inputMove4.Anonymous.mi.dy = 1;
+                    
+                    var inputMove5 = new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    };
+                    inputMove5.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                    inputMove5.Anonymous.mi.time = 0;
+                    inputMove5.Anonymous.mi.mouseData = 0;
+                    inputMove5.Anonymous.mi.dx = sourceAbsoluteX;
+                    inputMove5.Anonymous.mi.dy = sourceAbsoluteY;
 
-                    var inputs = new[] { input };
+                    var inputs = new[] { inputMove1, inputScroll, inputMove2, inputMove3, inputMove4, inputMove5 };
                     var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
-                    // _logger.LogTrace("Processing mouse event: SourceX={SourceX}, SourceY={SourceY}, TargetX={TargetX}, TargetY={TargetY}, Delta={Delta}", sourceEventX, sourceEventY, targetX, targetY, delta);
-
-                    var prevCursorPosX = sourceEventX;
-                    var prevCursorPosY = sourceEventY;
-
-                    // events can be processed with lag,
-                    // and we don't want the cursor to lag,
-                    // so we will try to use the most recent cursor position
-                    if (PInvoke.GetCursorPos(out var point)
-                        && NativeNumberUtils.PointInRect(sourceRect, point.X, point.Y))
-                    {
-                        prevCursorPosX = point.X;
-                        prevCursorPosY = point.Y;
-                    }
-
-                    PInvoke.SetCursorPos(targetX, targetY);
                     PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
-                    PInvoke.SetCursorPos(prevCursorPosX, prevCursorPosY);
-
-                    Thread.Sleep(1);
-                    if (PInvoke.GetCursorPos(out var pointNew)
-                        && !NativeNumberUtils.PointInRect(sourceRect, pointNew.X, pointNew.Y))
-                    {
-                        _logger.LogTrace("Cursor is not in the source window, trying to move it one more time");
-                        PInvoke.SetCursorPos(prevCursorPosX, prevCursorPosY);
-                    }
-
-                    // _logger.LogTrace("Successfully processed mouse event");
                 }
                 catch (Exception e)
                 {

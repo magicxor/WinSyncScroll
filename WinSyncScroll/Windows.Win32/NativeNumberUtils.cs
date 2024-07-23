@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CheckNamespace
 
+using Windows.Win32.UI.WindowsAndMessaging;
 using WinSyncScroll.Models;
 
 namespace Windows.Win32;
@@ -57,5 +58,15 @@ public static class NativeNumberUtils
                && x <= windowRect.Right
                && y >= windowRect.Top
                && y <= windowRect.Bottom;
+    }
+
+    public static int CalculateAbsoluteCoordinateX(int x, int smCxScreen)
+    {
+        return (x * 65536) / smCxScreen;
+    }
+
+    public static int CalculateAbsoluteCoordinateY(int y, int smCyScreen)
+    {
+        return (y * 65536) / smCyScreen;
     }
 }

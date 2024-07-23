@@ -29,3 +29,4 @@ SetWindowsHookExW
 UnhookWindowsHookEx
 CallNextHookEx
 GetModuleHandleW
+GetSystemMetrics
