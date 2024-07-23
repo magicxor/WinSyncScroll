@@ -47,7 +47,10 @@ public sealed partial class MainViewModel : IDisposable
 
     public bool IsRefreshButtonEnabled => AppState == AppState.NotRunning;
 
-    public bool IsStartButtonEnabled => AppState == AppState.NotRunning && Source != null && Target != null;
+    public bool IsStartButtonEnabled => AppState == AppState.NotRunning
+                                        && Source != null
+                                        && Target != null
+                                        && Source.WindowHandle != Target.WindowHandle;
 
     public bool IsStopButtonEnabled => AppState == AppState.Running;
 
@@ -116,7 +119,7 @@ public sealed partial class MainViewModel : IDisposable
                     {
                         if (AppState != AppState.Running)
                         {
-                            _logger.LogTrace("App is not running, skipping mouse event processing");
+                            // _logger.LogTrace("App is not running, skipping mouse event processing");
                             continue;
                         }
 

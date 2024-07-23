@@ -17,7 +17,7 @@ public class WinApiManager
 
     public List<WindowInfo> ListWindows()
     {
-        _logger.LogTrace("Listing windows");
+        _logger.LogDebug("Listing windows");
 
         var windowHandles = new List<HWND>();
 
