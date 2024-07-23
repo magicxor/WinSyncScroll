@@ -143,6 +143,8 @@ public sealed partial class MainViewModel : IDisposable
                         continue;
                     }
 
+                    // todo: if window under the cursor is not the source window, skip the event
+
                     var relativeX = sourceEventX - sourceRect.Left;
                     var relativeY = sourceEventY - sourceRect.Top;
 
