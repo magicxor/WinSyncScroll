@@ -195,17 +195,7 @@ public sealed partial class MainViewModel : IDisposable
                     inputScroll.Anonymous.mi.mouseData = (uint)delta;
                     inputScroll.Anonymous.mi.dx = targetAbsoluteX;
                     inputScroll.Anonymous.mi.dy = targetAbsoluteY;
-                    
-                    var inputMove2 = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    inputMove2.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                    inputMove2.Anonymous.mi.time = 0;
-                    inputMove2.Anonymous.mi.mouseData = 0;
-                    inputMove2.Anonymous.mi.dx = sourceAbsoluteX;
-                    inputMove2.Anonymous.mi.dy = sourceAbsoluteY;
-                    
+
                     var inputMove3 = new INPUT
                     {
                         type = INPUT_TYPE.INPUT_MOUSE,
@@ -215,17 +205,7 @@ public sealed partial class MainViewModel : IDisposable
                     inputMove3.Anonymous.mi.mouseData = 0;
                     inputMove3.Anonymous.mi.dx = sourceAbsoluteX + 1;
                     inputMove3.Anonymous.mi.dy = sourceAbsoluteY + 1;
-                    
-                    var inputMove4 = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    inputMove4.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE;
-                    inputMove4.Anonymous.mi.time = 0;
-                    inputMove4.Anonymous.mi.mouseData = 0;
-                    inputMove4.Anonymous.mi.dx = 1;
-                    inputMove4.Anonymous.mi.dy = 1;
-                    
+
                     var inputMove5 = new INPUT
                     {
                         type = INPUT_TYPE.INPUT_MOUSE,
@@ -236,7 +216,7 @@ public sealed partial class MainViewModel : IDisposable
                     inputMove5.Anonymous.mi.dx = sourceAbsoluteX;
                     inputMove5.Anonymous.mi.dy = sourceAbsoluteY;
 
-                    var inputs = new[] { inputMove1, inputScroll, inputMove2, inputMove3, inputMove4, inputMove5 };
+                    var inputs = new[] { inputMove1, inputScroll, inputMove3, inputMove5 };
                     var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
                     PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
