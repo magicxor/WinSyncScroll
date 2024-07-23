@@ -102,6 +102,12 @@ public sealed partial class MainViewModel : IDisposable
                         continue;
                     }
 
+                    if (Source.WindowHandle == Target.WindowHandle)
+                    {
+                        _logger.LogTrace("Source and target windows are the same, skipping mouse event processing");
+                        continue;
+                    }
+
                     if (buffer.MouseMessageId is not
                         (NativeConstants.WM_MOUSEWHEEL
                         or NativeConstants.WM_MOUSEHWHEEL))
@@ -110,8 +116,8 @@ public sealed partial class MainViewModel : IDisposable
                         continue;
                     }
 
-                    var scrollEventX = buffer.MouseMessageData.pt.X;
-                    var scrollEventY = buffer.MouseMessageData.pt.Y;
+                    var sourceEventX = buffer.MouseMessageData.pt.X;
+                    var sourceEventY = buffer.MouseMessageData.pt.Y;
 
                     PInvoke.GetWindowRect((HWND)Source.WindowHandle, out var sourceRectStruct);
                     var sourceRect = new WindowRect
@@ -131,14 +137,14 @@ public sealed partial class MainViewModel : IDisposable
                         Bottom = targetRectStruct.bottom,
                     };
 
-                    if (!NativeNumberUtils.PointInRect(sourceRect, scrollEventX, scrollEventY))
+                    if (!NativeNumberUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
                     {
                         _logger.LogTrace("Mouse event is not in the source window, skipping");
                         continue;
                     }
 
-                    var relativeX = scrollEventX - sourceRect.Left;
-                    var relativeY = scrollEventY - sourceRect.Top;
+                    var relativeX = sourceEventX - sourceRect.Left;
+                    var relativeY = sourceEventY - sourceRect.Top;
 
                     var targetX = targetRect.Left + relativeX;
                     var targetY = targetRect.Top + relativeY;
@@ -169,15 +175,38 @@ public sealed partial class MainViewModel : IDisposable
                     input.Anonymous.mi.mouseData = (uint)delta;
                     input.Anonymous.mi.dx = targetX;
                     input.Anonymous.mi.dy = targetY;
-
-                    PInvoke.SetCursorPos(targetX, targetY);
                     input.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
 
                     var inputs = new[] { input };
                     var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
+                    _logger.LogTrace("Processing mouse event: SourceX={SourceX}, SourceY={SourceY}, TargetX={TargetX}, TargetY={TargetY}, Delta={Delta}",
+                        sourceEventX, sourceEventY, targetX, targetY, delta);
+
+                    var prevCursorPosX = sourceEventX;
+                    var prevCursorPosY = sourceEventY;
+
+                    // events can be processed with lag,
+                    // and we don't want the cursor to lag,
+                    // so we will try to use the most recent cursor position
+                    if (PInvoke.GetCursorPos(out var point)
+                        && NativeNumberUtils.PointInRect(sourceRect, point.X, point.Y))
+                    {
+                        prevCursorPosX = point.X;
+                        prevCursorPosY = point.Y;
+                    }
+
+                    PInvoke.SetCursorPos(targetX, targetY);
                     PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
-                    PInvoke.SetCursorPos(scrollEventX, scrollEventY);
+                    PInvoke.SetCursorPos(prevCursorPosX, prevCursorPosY);
+
+                    Thread.Sleep(1);
+                    if (PInvoke.GetCursorPos(out var pointNew)
+                        && !NativeNumberUtils.PointInRect(sourceRect, pointNew.X, pointNew.Y))
+                    {
+                        _logger.LogTrace("Cursor is not in the source window, trying to move it one more time");
+                        PInvoke.SetCursorPos(prevCursorPosX, prevCursorPosY);
+                    }
 
                     _logger.LogTrace("Successfully processed mouse event");
                 }
