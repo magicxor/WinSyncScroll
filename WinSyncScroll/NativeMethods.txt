@@ -30,3 +30,4 @@ UnhookWindowsHookEx
 CallNextHookEx
 GetModuleHandleW
 GetSystemMetrics
+WindowFromPoint

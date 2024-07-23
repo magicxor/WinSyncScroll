@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using System.Windows.Data;
@@ -81,153 +82,181 @@ public sealed partial class MainViewModel : IDisposable
     {
         while (await channel.Reader.WaitToReadAsync(cancellationToken))
         {
-            while (channel.Reader.TryRead(out var buffer))
+            try
             {
-                try
+                WindowRect? sourceRect = null;
+                WindowRect? targetRect = null;
+                int? prevCursorPosX = null;
+                int? prevCursorPosY = null;
+
+                while (channel.Reader.TryRead(out var buffer))
                 {
-                    if (_appState != AppState.Running)
+                    try
                     {
-                        _logger.LogTrace("App is not running, skipping mouse event processing");
-                        continue;
+                        if (_appState != AppState.Running)
+                        {
+                            _logger.LogTrace("App is not running, skipping mouse event processing");
+                            continue;
+                        }
+
+                        if (Source is null)
+                        {
+                            _logger.LogTrace("Source window is not selected, skipping mouse event processing");
+                            continue;
+                        }
+
+                        if (Target is null)
+                        {
+                            _logger.LogTrace("Target window is not selected, skipping mouse event processing");
+                            continue;
+                        }
+
+                        if (Source.WindowHandle == Target.WindowHandle)
+                        {
+                            _logger.LogTrace("Source and target windows are the same, skipping mouse event processing");
+                            continue;
+                        }
+
+                        if (buffer.MouseMessageId is not
+                            (NativeConstants.WM_MOUSEWHEEL
+                            or NativeConstants.WM_MOUSEHWHEEL))
+                        {
+                            _logger.LogTrace("Skipping non-scroll mouse event");
+                            continue;
+                        }
+
+                        var sourceEventX = buffer.MouseMessageData.pt.X;
+                        var sourceEventY = buffer.MouseMessageData.pt.Y;
+
+                        sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
+                        targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
+
+                        if (!NativeNumberUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
+                        {
+                            // _logger.LogTrace("Mouse event is not in the source window, skipping");
+                            continue;
+                        }
+
+                        var scrolledWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
+                        var (_, processId, _) = PInvoke.GetWindowThreadProcessId(scrolledWindowHwnd);
+
+                        if (processId != Source.ProcessId)
+                        {
+                            _logger.LogTrace("Scrolled window does not belong to the source process, skipping");
+                            continue;
+                        }
+
+                        prevCursorPosX = sourceEventX;
+                        prevCursorPosY = sourceEventY;
+
+                        // events can be processed with lag,
+                        // and we don't want the cursor to lag,
+                        // so we will try to use the most recent cursor position
+                        if (PInvoke.GetCursorPos(out var point)
+                            && NativeNumberUtils.PointInRect(sourceRect, point.X, point.Y))
+                        {
+                            prevCursorPosX = point.X;
+                            prevCursorPosY = point.Y;
+                        }
+
+                        // todo: if scroll WITHOUT our custom dwExtraInfo goes to the target window, skip the event
+                        // todo: process a batch of events at once
+
+                        var relativeX = sourceEventX - sourceRect.Left;
+                        var relativeY = sourceEventY - sourceRect.Top;
+
+                        var targetX = targetRect.Left + relativeX;
+                        var targetY = targetRect.Top + relativeY;
+
+                        if (!NativeNumberUtils.PointInRect(targetRect, targetX, targetY))
+                        {
+                            _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
+                            targetX = targetRect.Left + targetRect.Right / 2;
+                            targetY = targetRect.Top + targetRect.Bottom / 2;
+                        }
+
+                        // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
+                        var (_, high) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
+                        var delta = high;
+
+                        var smCxScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
+                        var smCyScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
+                        var sourceAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventX, smCxScreen);
+                        var sourceAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventY, smCyScreen);
+                        var targetAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetX, smCxScreen);
+                        var targetAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetY, smCyScreen);
+
+                        var inputMove1 = new INPUT
+                        {
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                        };
+                        inputMove1.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                        inputMove1.Anonymous.mi.time = 0;
+                        inputMove1.Anonymous.mi.mouseData = 0;
+                        inputMove1.Anonymous.mi.dx = targetAbsoluteX;
+                        inputMove1.Anonymous.mi.dy = targetAbsoluteY;
+
+                        var inputScroll = new INPUT
+                        {
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                        };
+                        var dwFlags = buffer.MouseMessageId switch
+                        {
+                            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                            _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+                        };
+                        inputScroll.Anonymous.mi.dwFlags = dwFlags;
+                        inputScroll.Anonymous.mi.time = 0;
+                        inputScroll.Anonymous.mi.mouseData = (uint)delta;
+                        inputScroll.Anonymous.mi.dx = targetAbsoluteX;
+                        inputScroll.Anonymous.mi.dy = targetAbsoluteY;
+
+                        var inputMove3 = new INPUT
+                        {
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                        };
+                        inputMove3.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                        inputMove3.Anonymous.mi.time = 0;
+                        inputMove3.Anonymous.mi.mouseData = 0;
+                        inputMove3.Anonymous.mi.dx = sourceAbsoluteX + 1;
+                        inputMove3.Anonymous.mi.dy = sourceAbsoluteY + 1;
+
+                        var inputMove5 = new INPUT
+                        {
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                        };
+                        inputMove5.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
+                        inputMove5.Anonymous.mi.time = 0;
+                        inputMove5.Anonymous.mi.mouseData = 0;
+                        inputMove5.Anonymous.mi.dx = sourceAbsoluteX;
+                        inputMove5.Anonymous.mi.dy = sourceAbsoluteY;
+
+                        var inputs = new[] { inputMove1, inputScroll, inputMove3, inputMove5 };
+                        var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
+
+                        PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
                     }
-                    
-                    if (Source is null)
+                    catch (Exception e)
                     {
-                        _logger.LogTrace("Source window is not selected, skipping mouse event processing");
-                        continue;
+                        _logger.LogError(e, "Error processing mouse event");
                     }
-
-                    if (Target is null)
-                    {
-                        _logger.LogTrace("Target window is not selected, skipping mouse event processing");
-                        continue;
-                    }
-
-                    if (Source.WindowHandle == Target.WindowHandle)
-                    {
-                        _logger.LogTrace("Source and target windows are the same, skipping mouse event processing");
-                        continue;
-                    }
-
-                    if (buffer.MouseMessageId is not
-                        (NativeConstants.WM_MOUSEWHEEL
-                        or NativeConstants.WM_MOUSEHWHEEL))
-                    {
-                        _logger.LogTrace("Skipping non-scroll mouse event");
-                        continue;
-                    }
-
-                    var sourceEventX = buffer.MouseMessageData.pt.X;
-                    var sourceEventY = buffer.MouseMessageData.pt.Y;
-
-                    PInvoke.GetWindowRect((HWND)Source.WindowHandle, out var sourceRectStruct);
-                    var sourceRect = new WindowRect
-                    {
-                        Left = sourceRectStruct.left,
-                        Top = sourceRectStruct.top,
-                        Right = sourceRectStruct.right,
-                        Bottom = sourceRectStruct.bottom,
-                    };
-
-                    PInvoke.GetWindowRect((HWND)Target.WindowHandle, out var targetRectStruct);
-                    var targetRect = new WindowRect
-                    {
-                        Left = targetRectStruct.left,
-                        Top = targetRectStruct.top,
-                        Right = targetRectStruct.right,
-                        Bottom = targetRectStruct.bottom,
-                    };
-
-                    if (!NativeNumberUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
-                    {
-                        // _logger.LogTrace("Mouse event is not in the source window, skipping");
-                        continue;
-                    }
-
-                    // todo: if window under the cursor is not the source window, skip the event
-                    // todo: if scroll WITHOUT our custom dwExtraInfo goes to the target window, skip the event
-                    // todo: if cursor position is in target window, try to reposition it to the source window
-                    // todo: process a batch of events at once
-
-                    var relativeX = sourceEventX - sourceRect.Left;
-                    var relativeY = sourceEventY - sourceRect.Top;
-
-                    var targetX = targetRect.Left + relativeX;
-                    var targetY = targetRect.Top + relativeY;
-
-                    if (!NativeNumberUtils.PointInRect(targetRect, targetX, targetY))
-                    {
-                        _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
-                        targetX = targetRect.Left + targetRect.Right / 2;
-                        targetY = targetRect.Top + targetRect.Bottom / 2;
-                    }
-
-                    // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
-                    var (_, high) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
-                    var delta = high;
-
-                    var smCxScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
-                    var smCyScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
-                    var sourceAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventX, smCxScreen);
-                    var sourceAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(sourceEventY, smCyScreen);
-                    var targetAbsoluteX = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetX, smCxScreen);
-                    var targetAbsoluteY = NativeNumberUtils.CalculateAbsoluteCoordinateX(targetY, smCyScreen);
-
-                    var inputMove1 = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    inputMove1.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                    inputMove1.Anonymous.mi.time = 0;
-                    inputMove1.Anonymous.mi.mouseData = 0;
-                    inputMove1.Anonymous.mi.dx = targetAbsoluteX;
-                    inputMove1.Anonymous.mi.dy = targetAbsoluteY;
-
-                    var inputScroll = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    var dwFlags = buffer.MouseMessageId switch
-                    {
-                        NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
-                        NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
-                        _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
-                    };
-                    inputScroll.Anonymous.mi.dwFlags = dwFlags;
-                    inputScroll.Anonymous.mi.time = 0;
-                    inputScroll.Anonymous.mi.mouseData = (uint)delta;
-                    inputScroll.Anonymous.mi.dx = targetAbsoluteX;
-                    inputScroll.Anonymous.mi.dy = targetAbsoluteY;
-
-                    var inputMove3 = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    inputMove3.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                    inputMove3.Anonymous.mi.time = 0;
-                    inputMove3.Anonymous.mi.mouseData = 0;
-                    inputMove3.Anonymous.mi.dx = sourceAbsoluteX + 1;
-                    inputMove3.Anonymous.mi.dy = sourceAbsoluteY + 1;
-
-                    var inputMove5 = new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                    };
-                    inputMove5.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE;
-                    inputMove5.Anonymous.mi.time = 0;
-                    inputMove5.Anonymous.mi.mouseData = 0;
-                    inputMove5.Anonymous.mi.dx = sourceAbsoluteX;
-                    inputMove5.Anonymous.mi.dy = sourceAbsoluteY;
-
-                    var inputs = new[] { inputMove1, inputScroll, inputMove3, inputMove5 };
-                    var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
-
-                    PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
                 }
-                catch (Exception e)
+
+                Thread.Sleep(1);
+                if (sourceRect is not null
+                    && prevCursorPosX.HasValue
+                    && prevCursorPosY.HasValue
+                    && PInvoke.GetCursorPos(out var pointNew)
+                    && !NativeNumberUtils.PointInRect(sourceRect, pointNew.X, pointNew.Y))
                 {
-                    _logger.LogError(e, "Error processing mouse event");
+                    _logger.LogTrace("Cursor is not in the source window, trying to move it one more time");
+                    PInvoke.SetCursorPos(prevCursorPosX.Value, prevCursorPosY.Value);
                 }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error processing mouse events");
             }
         }
     }
