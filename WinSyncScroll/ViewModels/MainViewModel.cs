@@ -145,6 +145,7 @@ public sealed partial class MainViewModel : IDisposable
                     }
 
                     // todo: if window under the cursor is not the source window, skip the event
+                    // todo: if scroll WITHOUT our custom dwExtraInfo goes to the target window, skip the event
 
                     var relativeX = sourceEventX - sourceRect.Left;
                     var relativeY = sourceEventY - sourceRect.Top;
