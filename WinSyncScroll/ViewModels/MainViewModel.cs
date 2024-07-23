@@ -290,6 +290,8 @@ public sealed partial class MainViewModel : IDisposable
 
     private void RefreshWindows()
     {
+        _logger.LogInformation("Refreshing windows");
+
         var newWindows = _winApiManager.ListWindows();
 
         // remember the old windows to replace them with the new ones
@@ -370,6 +372,7 @@ public sealed partial class MainViewModel : IDisposable
 
     private void Stop()
     {
+        _logger.LogInformation("Stopping scroll sync");
         AppState = AppState.NotRunning;
     }
 
