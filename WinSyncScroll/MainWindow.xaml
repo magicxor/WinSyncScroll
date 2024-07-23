@@ -7,16 +7,12 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:fa6="http://schemas.fontawesome.com/icons/svg"
         mc:Ignorable="d"
-        Title="MainWindow"
+        Title="WinSyncScroll"
         Loaded="WindowLoaded"
         Closing="WindowClosing"
         Icon="./Resources/Icon/app_icon_64.png"
         Height="200"
         Width="800">
-    <Window.Resources>
-        <fa6:ImageSourceConverter x:Key="ImageSourceConverter"/>
-    </Window.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"></RowDefinition>
