@@ -139,7 +139,7 @@ public sealed partial class MainViewModel : IDisposable
 
                     if (!NativeNumberUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
                     {
-                        _logger.LogTrace("Mouse event is not in the source window, skipping");
+                        // _logger.LogTrace("Mouse event is not in the source window, skipping");
                         continue;
                     }
 
@@ -180,8 +180,7 @@ public sealed partial class MainViewModel : IDisposable
                     var inputs = new[] { input };
                     var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
-                    _logger.LogTrace("Processing mouse event: SourceX={SourceX}, SourceY={SourceY}, TargetX={TargetX}, TargetY={TargetY}, Delta={Delta}",
-                        sourceEventX, sourceEventY, targetX, targetY, delta);
+                    // _logger.LogTrace("Processing mouse event: SourceX={SourceX}, SourceY={SourceY}, TargetX={TargetX}, TargetY={TargetY}, Delta={Delta}", sourceEventX, sourceEventY, targetX, targetY, delta);
 
                     var prevCursorPosX = sourceEventX;
                     var prevCursorPosY = sourceEventY;
@@ -208,7 +207,7 @@ public sealed partial class MainViewModel : IDisposable
                         PInvoke.SetCursorPos(prevCursorPosX, prevCursorPosY);
                     }
 
-                    _logger.LogTrace("Successfully processed mouse event");
+                    // _logger.LogTrace("Successfully processed mouse event");
                 }
                 catch (Exception e)
                 {
