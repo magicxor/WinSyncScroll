@@ -269,7 +269,7 @@ public sealed partial class MainViewModel : IDisposable
 
                 if (AppState != AppState.Running)
                 {
-                    _logger.LogTrace("App is not running, skipping mouse event processing");
+                    //_logger.LogTrace("App is not running, skipping mouse event processing");
                     continue;
                 }
 
