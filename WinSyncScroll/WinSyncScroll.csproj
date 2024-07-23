@@ -7,6 +7,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <LangVersion>12</LangVersion>
+        <ApplicationIcon>Resources\Icon\app_icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -39,6 +40,14 @@
     <ItemGroup>
       <None Remove="nlog.config" />
       <Content Include="nlog.config">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Resources\Icon\app_icon.ico" />
+      <Content Include="Resources\Icon\app_icon.ico">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Resources\Icon\app_icon_64.png" />
+      <Content Include="Resources\Icon\app_icon_64.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
