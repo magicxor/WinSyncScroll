@@ -38,13 +38,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Remove="Resources\Icon\app_icon.ico" />
-      <Content Include="Resources\Icon\app_icon.ico">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+      <Resource Include="Resources\Icon\app_icon.ico" />
       <None Remove="Resources\Icon\app_icon_64.png" />
-      <Content Include="Resources\Icon\app_icon_64.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+      <Resource Include="Resources\Icon\app_icon_64.png" />
     </ItemGroup>
 
 </Project>
