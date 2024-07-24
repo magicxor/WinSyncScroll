@@ -54,6 +54,8 @@ public sealed partial class MainViewModel : IDisposable
 
     public bool IsStopButtonEnabled => AppState == AppState.Running;
 
+    public bool IsSourceTargetComboBoxEnabled => AppState == AppState.NotRunning;
+
     public Brush RefreshButtonSvgColor => IsRefreshButtonEnabled
         ? Brushes.Black
         : Brushes.DimGray;

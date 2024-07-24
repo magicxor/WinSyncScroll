@@ -67,6 +67,7 @@
                 ItemsSource="{Binding DataContext.WindowsOrdered, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                 DisplayMemberPath="DisplayName"
                 SelectedItem="{Binding DataContext.Source, Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                IsEnabled="{Binding IsSourceTargetComboBoxEnabled}"
             />
             <Label Grid.Row="1" Grid.Column="0" Margin="4,4,4,4" FontSize="16" Content="To:" Width="Auto" />
             <ComboBox
@@ -77,6 +78,7 @@
                 ItemsSource="{Binding DataContext.WindowsOrdered, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                 DisplayMemberPath="DisplayName"
                 SelectedItem="{Binding DataContext.Target, Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                IsEnabled="{Binding IsSourceTargetComboBoxEnabled}"
             />
         </Grid>
 
