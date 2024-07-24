@@ -22,6 +22,9 @@ public sealed class MouseHook : IDisposable
     private FreeLibrarySafeHandle? _moduleHandle;
     private HOOKPROC? _hookProc;
 
+    private volatile WindowRect? _rectGettingScroll;
+    private volatile WindowRect? _rectIgnoringScroll;
+
     public const int InjectedEventMagicNumber = 520165553;
 
     public MouseHook(ILogger<MouseHook> logger)
@@ -87,22 +90,41 @@ public sealed class MouseHook : IDisposable
 
                 if (mouseLowLevelData.dwExtraInfo == InjectedEventMagicNumber)
                 {
-                    // todo: use this to detect injected events
-                    // Console.WriteLine("Injected event detected");
+                    // we have nothing to do with injected events
                 }
-
-                // prevent the system from passing the message to the rest of the hook chain or the target window procedure
-                // return (LRESULT)1;
-
-                HookEvents.Writer.TryWrite(new MouseEventArgs
+                else
                 {
-                    MouseMessageId = wParam,
-                    MouseMessageData = mouseLowLevelData,
-                });
+                    if (_rectGettingScroll is not null
+                        && NativeNumberUtils.PointInRect(_rectGettingScroll, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                    {
+                        // we should process scroll events in this area
+                        HookEvents.Writer.TryWrite(new MouseEventArgs
+                        {
+                            MouseMessageId = wParam,
+                            MouseMessageData = mouseLowLevelData,
+                        });
+                    }
+                    else if (_rectIgnoringScroll is not null
+                             && NativeNumberUtils.PointInRect(_rectIgnoringScroll, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                    {
+                        // prevent the system from passing the message to the rest of the hook chain or the target window procedure
+                        return (LRESULT)1;
+                    }
+                }
             }
         }
 
         return PInvoke.CallNextHookEx(_unhookSafeHandle, code, wParam, lParam);
+    }
+
+    public void SetRectGettingRealScroll(WindowRect? rect)
+    {
+        _rectGettingScroll = rect;
+    }
+
+    public void SetRectIgnoringRealScroll(WindowRect? rect)
+    {
+        _rectIgnoringScroll = rect;
     }
 
     public void Install()

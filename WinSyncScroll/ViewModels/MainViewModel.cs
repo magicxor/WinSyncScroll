@@ -67,7 +67,10 @@ public sealed partial class MainViewModel : IDisposable
         : Brushes.DimGray;
 
     private Task? _mouseEventProcessingLoopTask;
+    private Task? _updateMouseHookRectsLoopTask;
+
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly PeriodicTimer _updateMouseHookRectsTimer = new(TimeSpan.FromMilliseconds(500));
 
     public MainViewModel(
         ILogger<MainViewModel> logger,
@@ -97,6 +100,9 @@ public sealed partial class MainViewModel : IDisposable
         var token = _cancellationTokenSource.Token;
         _mouseEventProcessingLoopTask = Task.Run(async () =>
             await RunMouseEventProcessingLoopAsync(_mouseHook.HookEvents, token),
+            token);
+        _updateMouseHookRectsLoopTask = Task.Run(async () =>
+            await RunUpdateMouseHookRectsLoopAsync(token),
             token);
     }
 
@@ -142,6 +148,8 @@ public sealed partial class MainViewModel : IDisposable
         Channel<MouseEventArgs> channel,
         CancellationToken cancellationToken = default)
     {
+        // todo: process a batch of events at once?
+
         while (await channel.Reader.WaitToReadAsync(cancellationToken))
         {
             try
@@ -221,9 +229,6 @@ public sealed partial class MainViewModel : IDisposable
                             prevCursorPosY = point.Y;
                         }
 
-                        // todo: if scroll WITHOUT our custom dwExtraInfo goes to the target window, skip the event
-                        // todo: process a batch of events at once
-
                         var relativeX = sourceEventX - sourceRect.Left;
                         var relativeY = sourceEventY - sourceRect.Top;
 
@@ -284,13 +289,67 @@ public sealed partial class MainViewModel : IDisposable
                     && PInvoke.GetCursorPos(out var pointNew)
                     && !NativeNumberUtils.PointInRect(sourceRect, pointNew.X, pointNew.Y))
                 {
-                    _logger.LogTrace("Cursor is not in the source window, trying to move it one more time");
+                    _logger.LogTrace("Cursor is not in the source window, trying to move it back one more time");
                     PInvoke.SetCursorPos(prevCursorPosX.Value, prevCursorPosY.Value);
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error processing mouse events");
+            }
+        }
+    }
+
+    private async Task RunUpdateMouseHookRectsLoopAsync(CancellationToken token)
+    {
+        while (await _updateMouseHookRectsTimer.WaitForNextTickAsync(token))
+        {
+            if (AppState == AppState.NotRunning || Source is null || Target is null)
+            {
+                _mouseHook.SetRectGettingRealScroll(null);
+                _mouseHook.SetRectIgnoringRealScroll(null);
+            }
+            else
+            {
+                try
+                {
+                    var sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
+                    var targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
+
+                    var centerOfSource = new Point(
+                        sourceRect.Left + sourceRect.Right / 2,
+                        sourceRect.Top + sourceRect.Bottom / 2);
+                    var centerOfTarget = new Point(
+                        targetRect.Left + targetRect.Right / 2,
+                        targetRect.Top + targetRect.Bottom / 2);
+
+                    var actualSourceWindowHwnd = PInvoke.WindowFromPoint(centerOfSource);
+                    var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
+
+                    var actualTargetWindowHwnd = PInvoke.WindowFromPoint(centerOfTarget);
+                    var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
+
+                    if (actualSourceProcessId != Source.ProcessId
+                        || actualTargetWindowProcessId != Target.ProcessId)
+                    {
+                        // _logger.LogTrace("Source or target window is not in the foreground, setting rects to null");
+
+                        _mouseHook.SetRectGettingRealScroll(null);
+                        _mouseHook.SetRectIgnoringRealScroll(null);
+                    }
+                    else
+                    {
+                        _mouseHook.SetRectGettingRealScroll(sourceRect);
+                        _mouseHook.SetRectIgnoringRealScroll(targetRect);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error updating mouse hook rects");
+
+                    _mouseHook.SetRectGettingRealScroll(null);
+                    _mouseHook.SetRectIgnoringRealScroll(null);
+                }
             }
         }
     }
@@ -409,6 +468,7 @@ public sealed partial class MainViewModel : IDisposable
             _logger.LogError(e, "Error cancelling the cancellation token source");
         }
 
+        _updateMouseHookRectsLoopTask?.Dispose();
         _mouseEventProcessingLoopTask?.Dispose();
         _mouseHook.Dispose();
         _cancellationTokenSource.Dispose();
