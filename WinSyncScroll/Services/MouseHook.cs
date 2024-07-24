@@ -22,8 +22,9 @@ public sealed class MouseHook : IDisposable
     private FreeLibrarySafeHandle? _moduleHandle;
     private HOOKPROC? _hookProc;
 
-    private volatile WindowRect? _rectGettingScroll;
-    private volatile WindowRect? _rectIgnoringScroll;
+    private volatile WindowRect? _sourceRect;
+    private volatile WindowRect? _targetRect;
+    private volatile DateTimeObj _preventRealScrollEvents = new(DateTime.MinValue);
 
     public const int InjectedEventMagicNumber = 520165553;
 
@@ -39,6 +40,11 @@ public sealed class MouseHook : IDisposable
         _moduleHandle = PInvoke.GetModuleHandle(_module.ModuleName);
         _hookProc = proc;
         return PInvoke.SetWindowsHookEx(WINDOWS_HOOK_ID.WH_MOUSE_LL, _hookProc, _moduleHandle, 0);
+    }
+
+    private bool IsPreventRealScrollEventsActive()
+    {
+        return _preventRealScrollEvents.DateTime.AddMilliseconds(200) >= DateTime.UtcNow;
     }
 
     /// <summary>
@@ -77,7 +83,8 @@ public sealed class MouseHook : IDisposable
     {
         if (code >= 0
             && (wParam == NativeConstants.WM_MOUSEWHEEL
-                || wParam == NativeConstants.WM_MOUSEHWHEEL))
+                || wParam == NativeConstants.WM_MOUSEHWHEEL
+                || wParam == NativeConstants.WM_MOUSEMOVE))
         {
             var mouseLowLevelDataObj = Marshal.PtrToStructure(lParam, typeof(User32.MSLLHOOKSTRUCT));
             if (mouseLowLevelDataObj is null)
@@ -94,8 +101,10 @@ public sealed class MouseHook : IDisposable
                 }
                 else
                 {
-                    if (_rectGettingScroll is not null
-                        && NativeNumberUtils.PointInRect(_rectGettingScroll, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                    if (_sourceRect is not null
+                        && NativeNumberUtils.PointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
+                        && (wParam == NativeConstants.WM_MOUSEWHEEL
+                            || wParam == NativeConstants.WM_MOUSEHWHEEL))
                     {
                         // we should process scroll events in this area
                         HookEvents.Writer.TryWrite(new MouseEventArgs
@@ -104,8 +113,9 @@ public sealed class MouseHook : IDisposable
                             MouseMessageData = mouseLowLevelData,
                         });
                     }
-                    else if (_rectIgnoringScroll is not null
-                             && NativeNumberUtils.PointInRect(_rectIgnoringScroll, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                    else if (IsPreventRealScrollEventsActive()
+                             && _targetRect is not null
+                             && NativeNumberUtils.PointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
                     {
                         // prevent the system from passing the message to the rest of the hook chain or the target window procedure
                         return (LRESULT)1;
@@ -119,12 +129,17 @@ public sealed class MouseHook : IDisposable
 
     public void SetRectGettingRealScroll(WindowRect? rect)
     {
-        _rectGettingScroll = rect;
+        _sourceRect = rect;
     }
 
-    public void SetRectIgnoringRealScroll(WindowRect? rect)
+    public void SetRectPreventingRealScroll(WindowRect? rect)
     {
-        _rectIgnoringScroll = rect;
+        _targetRect = rect;
+    }
+
+    public void SetPreventRealScrollEvents()
+    {
+        _preventRealScrollEvents = new DateTimeObj(DateTime.UtcNow);
     }
 
     public void Install()

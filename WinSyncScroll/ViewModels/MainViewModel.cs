@@ -268,6 +268,7 @@ public sealed partial class MainViewModel : IDisposable
                         var inputs = new[] { inputMoveToTarget, inputScrollTarget, inputMoveToSource };
                         var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
+                        _mouseHook.SetPreventRealScrollEvents();
                         PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
                     }
                     catch (Exception e)
@@ -282,7 +283,8 @@ public sealed partial class MainViewModel : IDisposable
                     continue;
                 }
 
-                Thread.Sleep(1);
+                /*
+                Thread.Sleep(10);
                 if (sourceRect is not null
                     && prevCursorPosX.HasValue
                     && prevCursorPosY.HasValue
@@ -292,6 +294,7 @@ public sealed partial class MainViewModel : IDisposable
                     _logger.LogTrace("Cursor is not in the source window, trying to move it back one more time");
                     PInvoke.SetCursorPos(prevCursorPosX.Value, prevCursorPosY.Value);
                 }
+                */
             }
             catch (Exception e)
             {
@@ -307,7 +310,7 @@ public sealed partial class MainViewModel : IDisposable
             if (AppState == AppState.NotRunning || Source is null || Target is null)
             {
                 _mouseHook.SetRectGettingRealScroll(null);
-                _mouseHook.SetRectIgnoringRealScroll(null);
+                _mouseHook.SetRectPreventingRealScroll(null);
             }
             else
             {
@@ -335,12 +338,12 @@ public sealed partial class MainViewModel : IDisposable
                         // _logger.LogTrace("Source or target window is not in the foreground, setting rects to null");
 
                         _mouseHook.SetRectGettingRealScroll(null);
-                        _mouseHook.SetRectIgnoringRealScroll(null);
+                        _mouseHook.SetRectPreventingRealScroll(null);
                     }
                     else
                     {
                         _mouseHook.SetRectGettingRealScroll(sourceRect);
-                        _mouseHook.SetRectIgnoringRealScroll(targetRect);
+                        _mouseHook.SetRectPreventingRealScroll(targetRect);
                     }
                 }
                 catch (Exception e)
@@ -348,7 +351,7 @@ public sealed partial class MainViewModel : IDisposable
                     _logger.LogError(e, "Error updating mouse hook rects");
 
                     _mouseHook.SetRectGettingRealScroll(null);
-                    _mouseHook.SetRectIgnoringRealScroll(null);
+                    _mouseHook.SetRectPreventingRealScroll(null);
                 }
             }
         }
