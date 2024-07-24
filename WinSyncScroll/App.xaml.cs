@@ -15,6 +15,8 @@ public partial class App : Application
 {
     private ILogger<App>? Logger { get; set; }
 
+    private static readonly Mutex AppMutex = new(true, "WinSyncScroll_C2EFE215-EDB7-4D88-8D25-76727E2E0DFB");
+
     private MainWindow ResolveMainWindow(IServiceProvider serviceProvider)
     {
         return serviceProvider.GetRequiredService<MainWindow>();
@@ -35,6 +37,13 @@ public partial class App : Application
 
             try
             {
+                if (!AppMutex.WaitOne(TimeSpan.Zero, true))
+                {
+                    Logger?.LogError(ServiceErrorCode.AnotherInstanceRunning.ToEventId(), "Another instance is already running");
+                    Shutdown();
+                    return;
+                }
+
                 var mainWindow = ResolveMainWindow(serviceProvider);
                 ShowMainWindow(mainWindow);
             }
@@ -47,7 +56,7 @@ public partial class App : Application
         catch (Exception exception)
         {
             MessageBox.Show(exception.Message, "An error occurred", MessageBoxButton.OK, MessageBoxImage.Error);
-            this.Shutdown();
+            Shutdown();
         }
     }
 
