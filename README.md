@@ -6,7 +6,7 @@ Scroll two windows simultaneously
 - https://badecho.com/index.php/2024/01/17/message-queue-messages/
 - https://github.com/microsoft/CsWin32
 - https://github.com/dahall/vanara
-- https://easyhook.github.io/
 - https://www.codeproject.com/Articles/6362/Global-System-Hooks-in-NET
+- https://github.com/rvknth043/Global-Low-Level-Key-Board-And-Mouse-Hook
 - https://sharphook.tolik.io/v5.3.7/
 - https://github.com/TolikPylypchuk/libuiohook
