@@ -46,26 +46,11 @@ public static class NativeNumberUtils
         return (Low: low, High: high);
     }
 
-    public static bool IsKeyDown(nuint wParam, int key)
-    {
-        return (wParam & (nuint)key) != 0;
-    }
-
     public static bool PointInRect(WindowRect windowRect, int x, int y)
     {
         return x >= windowRect.Left
                && x <= windowRect.Right
                && y >= windowRect.Top
                && y <= windowRect.Bottom;
-    }
-
-    public static int CalculateAbsoluteCoordinateX(int x, int smCxScreen)
-    {
-        return (x * 65536) / smCxScreen;
-    }
-
-    public static int CalculateAbsoluteCoordinateY(int y, int smCyScreen)
-    {
-        return (y * 65536) / smCyScreen;
     }
 }
