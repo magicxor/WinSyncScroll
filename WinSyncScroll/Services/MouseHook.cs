@@ -127,12 +127,12 @@ public sealed class MouseHook : IDisposable
         return PInvoke.CallNextHookEx(_unhookSafeHandle, code, wParam, lParam);
     }
 
-    public void SetRectGettingRealScroll(WindowRect? rect)
+    public void SetSourceRect(WindowRect? rect)
     {
         _sourceRect = rect;
     }
 
-    public void SetRectPreventingRealScroll(WindowRect? rect)
+    public void SetTargetRect(WindowRect? rect)
     {
         _targetRect = rect;
     }

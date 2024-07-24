@@ -309,8 +309,8 @@ public sealed partial class MainViewModel : IDisposable
         {
             if (AppState == AppState.NotRunning || Source is null || Target is null)
             {
-                _mouseHook.SetRectGettingRealScroll(null);
-                _mouseHook.SetRectPreventingRealScroll(null);
+                _mouseHook.SetSourceRect(null);
+                _mouseHook.SetTargetRect(null);
             }
             else
             {
@@ -337,21 +337,21 @@ public sealed partial class MainViewModel : IDisposable
                     {
                         // _logger.LogTrace("Source or target window is not in the foreground, setting rects to null");
 
-                        _mouseHook.SetRectGettingRealScroll(null);
-                        _mouseHook.SetRectPreventingRealScroll(null);
+                        _mouseHook.SetSourceRect(null);
+                        _mouseHook.SetTargetRect(null);
                     }
                     else
                     {
-                        _mouseHook.SetRectGettingRealScroll(sourceRect);
-                        _mouseHook.SetRectPreventingRealScroll(targetRect);
+                        _mouseHook.SetSourceRect(sourceRect);
+                        _mouseHook.SetTargetRect(targetRect);
                     }
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Error updating mouse hook rects");
 
-                    _mouseHook.SetRectGettingRealScroll(null);
-                    _mouseHook.SetRectPreventingRealScroll(null);
+                    _mouseHook.SetSourceRect(null);
+                    _mouseHook.SetTargetRect(null);
                 }
             }
         }
