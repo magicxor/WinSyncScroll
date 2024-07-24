@@ -16,7 +16,7 @@ public static class ContainerConfigurationUtils
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
                 // Services
                 .AddScoped<MouseHook>()
-                .AddScoped<WinApiManager>()
+                .AddScoped<WinApiService>()
                 // ViewModels
                 .AddScoped<MainViewModel>()
                 // Windows

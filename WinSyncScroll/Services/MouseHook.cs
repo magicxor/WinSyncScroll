@@ -82,9 +82,9 @@ public sealed class MouseHook : IDisposable
     private LRESULT HookFunc(int code, WPARAM wParam, LPARAM lParam)
     {
         if (code >= 0
-            && (wParam == NativeConstants.WM_MOUSEWHEEL
-                || wParam == NativeConstants.WM_MOUSEHWHEEL
-                || wParam == NativeConstants.WM_MOUSEMOVE))
+            && (wParam == WinApiConstants.WM_MOUSEWHEEL
+                || wParam == WinApiConstants.WM_MOUSEHWHEEL
+                || wParam == WinApiConstants.WM_MOUSEMOVE))
         {
             var mouseLowLevelDataObj = Marshal.PtrToStructure(lParam, typeof(User32.MSLLHOOKSTRUCT));
             if (mouseLowLevelDataObj is null)
@@ -102,9 +102,9 @@ public sealed class MouseHook : IDisposable
                 else
                 {
                     if (_sourceRect is not null
-                        && NativeNumberUtils.PointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
-                        && (wParam == NativeConstants.WM_MOUSEWHEEL
-                            || wParam == NativeConstants.WM_MOUSEHWHEEL))
+                        && WinApiUtils.PointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
+                        && (wParam == WinApiConstants.WM_MOUSEWHEEL
+                            || wParam == WinApiConstants.WM_MOUSEHWHEEL))
                     {
                         // we should process scroll events in this area
                         HookEvents.Writer.TryWrite(new MouseEventArgs
@@ -115,7 +115,7 @@ public sealed class MouseHook : IDisposable
                     }
                     else if (IsPreventRealScrollEventsActive()
                              && _targetRect is not null
-                             && NativeNumberUtils.PointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                             && WinApiUtils.PointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
                     {
                         // prevent the system from passing the message to the rest of the hook chain or the target window procedure
                         return (LRESULT)1;

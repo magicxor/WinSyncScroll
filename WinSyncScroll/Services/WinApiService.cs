@@ -6,11 +6,11 @@ using WinSyncScroll.Models;
 
 namespace WinSyncScroll.Services;
 
-public class WinApiManager
+public class WinApiService
 {
-    private readonly ILogger<WinApiManager> _logger;
+    private readonly ILogger<WinApiService> _logger;
 
-    public WinApiManager(ILogger<WinApiManager> logger)
+    public WinApiService(ILogger<WinApiService> logger)
     {
         _logger = logger;
     }

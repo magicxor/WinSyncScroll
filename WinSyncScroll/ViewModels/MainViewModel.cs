@@ -21,7 +21,7 @@ namespace WinSyncScroll.ViewModels;
 public sealed partial class MainViewModel : IDisposable
 {
     private readonly ILogger<MainViewModel> _logger;
-    private readonly WinApiManager _winApiManager;
+    private readonly WinApiService _winApiService;
     private readonly MouseHook _mouseHook;
 
     // ReSharper disable once MemberCanBePrivate.Global
@@ -79,11 +79,11 @@ public sealed partial class MainViewModel : IDisposable
 
     public MainViewModel(
         ILogger<MainViewModel> logger,
-        WinApiManager winApiManager,
+        WinApiService winApiService,
         MouseHook mouseHook)
     {
         _logger = logger;
-        _winApiManager = winApiManager;
+        _winApiService = winApiService;
         _mouseHook = mouseHook;
 
         RefreshWindowsCommand = new RelayCommand(RefreshWindows);
@@ -119,8 +119,8 @@ public sealed partial class MainViewModel : IDisposable
         };
         var dwFlags = mouseMessageId switch
         {
-            NativeConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
-            NativeConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            WinApiConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            WinApiConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
             _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
         };
         inputScroll.Anonymous.mi.dwFlags = dwFlags;
@@ -194,8 +194,8 @@ public sealed partial class MainViewModel : IDisposable
                     }
 
                     if (buffer.MouseMessageId is not
-                        (NativeConstants.WM_MOUSEWHEEL
-                        or NativeConstants.WM_MOUSEHWHEEL))
+                        (WinApiConstants.WM_MOUSEWHEEL
+                        or WinApiConstants.WM_MOUSEHWHEEL))
                     {
                         _logger.LogTrace("Skipping non-scroll mouse event");
                         continue;
@@ -207,7 +207,7 @@ public sealed partial class MainViewModel : IDisposable
                     var sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
                     var targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
 
-                    if (!NativeNumberUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
+                    if (!WinApiUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
                     {
                         // _logger.LogTrace("Mouse event is not in the source window, skipping");
                         continue;
@@ -228,7 +228,7 @@ public sealed partial class MainViewModel : IDisposable
                     var targetX = targetRect.Left + relativeX;
                     var targetY = targetRect.Top + relativeY;
 
-                    if (!NativeNumberUtils.PointInRect(targetRect, targetX, targetY))
+                    if (!WinApiUtils.PointInRect(targetRect, targetX, targetY))
                     {
                         _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
                         targetX = targetRect.Left + targetRect.Right / 2;
@@ -245,7 +245,7 @@ public sealed partial class MainViewModel : IDisposable
                     }
 
                     // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
-                    var (_, delta) = NativeNumberUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
+                    var (_, delta) = WinApiUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
 
                     var (sourceAbsoluteX, sourceAbsoluteY) = CalculateAbsoluteCoordinates(sourceEventX, sourceEventY);
                     var (targetAbsoluteX, targetAbsoluteY) = CalculateAbsoluteCoordinates(targetX, targetY);
@@ -326,7 +326,7 @@ public sealed partial class MainViewModel : IDisposable
     {
         _logger.LogInformation("Refreshing windows");
 
-        var newWindows = _winApiManager.ListWindows();
+        var newWindows = _winApiService.ListWindows();
 
         // remember the old windows to replace them with the new ones
         var oldSource = Source;

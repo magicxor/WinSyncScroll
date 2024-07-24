@@ -3,7 +3,7 @@
 
 namespace Windows.Win32;
 
-public class NativeConstants
+public static class WinApiConstants
 {
     /// HELP_WM_HELP -> 0x000c
     public const int HELP_WM_HELP = 12;
@@ -12,10 +12,10 @@ public class NativeConstants
     public const int WM_INPUTLANGCHANGEREQUEST = 80;
 
     /// WM_CHOOSEFONT_SETLOGFONT -> (WM_USER + 101)
-    public const int WM_CHOOSEFONT_SETLOGFONT = (NativeConstants.WM_USER + 101);
+    public const int WM_CHOOSEFONT_SETLOGFONT = (WinApiConstants.WM_USER + 101);
 
     /// WM_CHOOSEFONT_GETLOGFONT -> (WM_USER + 1)
-    public const int WM_CHOOSEFONT_GETLOGFONT = (NativeConstants.WM_USER + 1);
+    public const int WM_CHOOSEFONT_GETLOGFONT = (WinApiConstants.WM_USER + 1);
 
     /// WM_IME_STARTCOMPOSITION -> 0x010D
     public const int WM_IME_STARTCOMPOSITION = 269;
@@ -24,10 +24,10 @@ public class NativeConstants
     public const int WM_IME_COMPOSITIONFULL = 644;
 
     /// WM_CHOOSEFONT_SETFLAGS -> (WM_USER + 102)
-    public const int WM_CHOOSEFONT_SETFLAGS = (NativeConstants.WM_USER + 102);
+    public const int WM_CHOOSEFONT_SETFLAGS = (WinApiConstants.WM_USER + 102);
 
     /// WM_PSD_YAFULLPAGERECT -> (WM_USER+6)
-    public const int WM_PSD_YAFULLPAGERECT = (NativeConstants.WM_USER + 6);
+    public const int WM_PSD_YAFULLPAGERECT = (WinApiConstants.WM_USER + 6);
 
     /// WM_IME_ENDCOMPOSITION -> 0x010E
     public const int WM_IME_ENDCOMPOSITION = 270;
@@ -39,10 +39,10 @@ public class NativeConstants
     public const int WM_WINDOWPOSCHANGING = 70;
 
     /// WM_PSD_MINMARGINRECT -> (WM_USER+2)
-    public const int WM_PSD_MINMARGINRECT = (NativeConstants.WM_USER + 2);
+    public const int WM_PSD_MINMARGINRECT = (WinApiConstants.WM_USER + 2);
 
     /// WM_PSD_GREEKTEXTRECT -> (WM_USER+4)
-    public const int WM_PSD_GREEKTEXTRECT = (NativeConstants.WM_USER + 4);
+    public const int WM_PSD_GREEKTEXTRECT = (WinApiConstants.WM_USER + 4);
 
     /// WM_PALETTEISCHANGING -> 0x0310
     public const int WM_PALETTEISCHANGING = 784;
@@ -60,13 +60,13 @@ public class NativeConstants
     public const int WM_RENDERALLFORMATS = 774;
 
     /// WM_PSD_PAGESETUPDLG -> (WM_USER  )
-    public const int WM_PSD_PAGESETUPDLG = NativeConstants.WM_USER;
+    public const int WM_PSD_PAGESETUPDLG = WinApiConstants.WM_USER;
 
     /// WM_PSD_FULLPAGERECT -> (WM_USER+1)
-    public const int WM_PSD_FULLPAGERECT = (NativeConstants.WM_USER + 1);
+    public const int WM_PSD_FULLPAGERECT = (WinApiConstants.WM_USER + 1);
 
     /// WM_PSD_ENVSTAMPRECT -> (WM_USER+5)
-    public const int WM_PSD_ENVSTAMPRECT = (NativeConstants.WM_USER + 5);
+    public const int WM_PSD_ENVSTAMPRECT = (WinApiConstants.WM_USER + 5);
 
     /// WM_HSCROLLCLIPBOARD -> 0x030E
     public const int WM_HSCROLLCLIPBOARD = 782;
@@ -111,7 +111,7 @@ public class NativeConstants
     public const int WM_SYSCOLORCHANGE = 21;
 
     /// WM_PSD_MARGINRECT -> (WM_USER+3)
-    public const int WM_PSD_MARGINRECT = (NativeConstants.WM_USER + 3);
+    public const int WM_PSD_MARGINRECT = (WinApiConstants.WM_USER + 3);
 
     /// WM_POWERBROADCAST -> 0x0218
     public const int WM_POWERBROADCAST = 536;
@@ -159,7 +159,7 @@ public class NativeConstants
     public const int WM_SIZECLIPBOARD = 779;
 
     /// WM_SETTINGCHANGE -> WM_WININICHANGE
-    public const int WM_SETTINGCHANGE = NativeConstants.WM_WININICHANGE;
+    public const int WM_SETTINGCHANGE = WinApiConstants.WM_WININICHANGE;
 
     /// WM_RBUTTONDBLCLK -> 0x0206
     public const int WM_RBUTTONDBLCLK = 518;
@@ -222,7 +222,7 @@ public class NativeConstants
     public const int WM_DEVMODECHANGE = 27;
 
     /// WM_DDE_TERMINATE -> (WM_DDE_FIRST+1)
-    public const int WM_DDE_TERMINATE = (NativeConstants.WM_DDE_FIRST + 1);
+    public const int WM_DDE_TERMINATE = (WinApiConstants.WM_DDE_FIRST + 1);
 
     /// WM_CHILDACTIVATE -> 0x0022
     public const int WM_CHILDACTIVATE = 34;
@@ -282,10 +282,10 @@ public class NativeConstants
     public const int WM_DEVICECHANGE = 537;
 
     /// WM_DDE_UNADVISE -> (WM_DDE_FIRST+3)
-    public const int WM_DDE_UNADVISE = (NativeConstants.WM_DDE_FIRST + 3);
+    public const int WM_DDE_UNADVISE = (WinApiConstants.WM_DDE_FIRST + 3);
 
     /// WM_DDE_INITIATE -> (WM_DDE_FIRST)
-    public const int WM_DDE_INITIATE = NativeConstants.WM_DDE_FIRST;
+    public const int WM_DDE_INITIATE = WinApiConstants.WM_DDE_FIRST;
 
     /// WM_CTLCOLOREDIT -> 0x0133
     public const int WM_CTLCOLOREDIT = 307;
@@ -357,10 +357,10 @@ public class NativeConstants
     public const int WM_IME_CONTROL = 643;
 
     /// WM_DDE_REQUEST -> (WM_DDE_FIRST+6)
-    public const int WM_DDE_REQUEST = (NativeConstants.WM_DDE_FIRST + 6);
+    public const int WM_DDE_REQUEST = (WinApiConstants.WM_DDE_FIRST + 6);
 
     /// WM_DDE_EXECUTE -> (WM_DDE_FIRST+8)
-    public const int WM_DDE_EXECUTE = (NativeConstants.WM_DDE_FIRST + 8);
+    public const int WM_DDE_EXECUTE = (WinApiConstants.WM_DDE_FIRST + 8);
 
     /// WM_CTLCOLORDLG -> 0x0136
     public const int WM_CTLCOLORDLG = 310;
@@ -456,7 +456,7 @@ public class NativeConstants
     public const int WM_DELETEITEM = 45;
 
     /// WM_DDE_ADVISE -> (WM_DDE_FIRST+2)
-    public const int WM_DDE_ADVISE = (NativeConstants.WM_DDE_FIRST + 2);
+    public const int WM_DDE_ADVISE = (WinApiConstants.WM_DDE_FIRST + 2);
 
     /// WM_COMPACTING -> 0x0041
     public const int WM_COMPACTING = 65;
@@ -576,13 +576,13 @@ public class NativeConstants
     public const int WM_DEADCHAR = 259;
 
     /// WM_DDE_POKE -> (WM_DDE_FIRST+7)
-    public const int WM_DDE_POKE = (NativeConstants.WM_DDE_FIRST + 7);
+    public const int WM_DDE_POKE = (WinApiConstants.WM_DDE_FIRST + 7);
 
     /// WM_DDE_LAST -> (WM_DDE_FIRST+8)
-    public const int WM_DDE_LAST = (NativeConstants.WM_DDE_FIRST + 8);
+    public const int WM_DDE_LAST = (WinApiConstants.WM_DDE_FIRST + 8);
 
     /// WM_DDE_DATA -> (WM_DDE_FIRST+5)
-    public const int WM_DDE_DATA = (NativeConstants.WM_DDE_FIRST + 5);
+    public const int WM_DDE_DATA = (WinApiConstants.WM_DDE_FIRST + 5);
 
     /// WM_COPYDATA -> 0x004A
     public const int WM_COPYDATA = 74;
@@ -642,7 +642,7 @@ public class NativeConstants
     public const int WM_DESTROY = 2;
 
     /// WM_DDE_ACK -> (WM_DDE_FIRST+4)
-    public const int WM_DDE_ACK = (NativeConstants.WM_DDE_FIRST + 4);
+    public const int WM_DDE_ACK = (WinApiConstants.WM_DDE_FIRST + 4);
 
     /// WM_COMMAND -> 0x0111
     public const int WM_COMMAND = 273;
@@ -777,10 +777,10 @@ public class NativeConstants
     public const int IN_CLASSB_NSHIFT = 16;
 
     /// ESB_DISABLE_RTDN -> ESB_DISABLE_RIGHT
-    public const int ESB_DISABLE_RTDN = NativeConstants.ESB_DISABLE_RIGHT;
+    public const int ESB_DISABLE_RTDN = WinApiConstants.ESB_DISABLE_RIGHT;
 
     /// ESB_DISABLE_LTUP -> ESB_DISABLE_LEFT
-    public const int ESB_DISABLE_LTUP = NativeConstants.ESB_DISABLE_LEFT;
+    public const int ESB_DISABLE_LTUP = WinApiConstants.ESB_DISABLE_LEFT;
 
     /// ESB_DISABLE_LEFT -> 0x0001
     public const int ESB_DISABLE_LEFT = 1;
@@ -927,10 +927,10 @@ public class NativeConstants
     public const int WH_KEYBOARD = 2;
 
     /// WH_MINHOOK -> WH_MIN
-    public const int WH_MINHOOK = NativeConstants.WH_MIN;
+    public const int WH_MINHOOK = WinApiConstants.WH_MIN;
 
     /// WH_MAXHOOK -> WH_MAX
-    public const int WH_MAXHOOK = NativeConstants.WH_MAX;
+    public const int WH_MAXHOOK = WinApiConstants.WH_MAX;
 
     /// WH_SHELL -> 10
     public const int WH_SHELL = 10;

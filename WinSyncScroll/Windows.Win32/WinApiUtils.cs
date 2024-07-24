@@ -4,7 +4,7 @@ using WinSyncScroll.Models;
 
 namespace Windows.Win32;
 
-public static class NativeNumberUtils
+public static class WinApiUtils
 {
     public static nuint CreateWParam(int hiWord, int loWord)
     {
