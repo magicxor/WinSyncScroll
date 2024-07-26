@@ -197,7 +197,7 @@ public sealed partial class MainViewModel : IDisposable
                         continue;
                     }
 
-                    if (buffer.MouseMessageId is not
+                    if ((ulong)buffer.MouseMessageId is not
                         (WinApiConstants.WM_MOUSEWHEEL
                         or WinApiConstants.WM_MOUSEHWHEEL))
                     {
