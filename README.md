@@ -3,11 +3,11 @@ Scroll two windows simultaneously
 
 ## Demo
 
-![Notepad -> Notepad](https://github.com/user-attachments/assets/ba52c20e-1099-4e20-9b8d-f164d283c639)
+https://github.com/user-attachments/assets/ba52c20e-1099-4e20-9b8d-f164d283c639
 
-![Chromium -> VsCode](https://github.com/user-attachments/assets/f2cc2020-cc07-411e-a4c7-7ef227d9cdda)
+https://github.com/user-attachments/assets/f2cc2020-cc07-411e-a4c7-7ef227d9cdda
 
-![Wordpad -> Word](https://github.com/user-attachments/assets/609c8ace-a694-4c2c-85fb-4628113caebc)
+https://github.com/user-attachments/assets/609c8ace-a694-4c2c-85fb-4628113caebc
 
 ## How it works
 
