@@ -12,7 +12,7 @@ public static class ContainerConfigurationUtils
         {
             return services
                 /* Logging */
-                .AddSingleton(_ =>
+                .AddSingleton<ILoggerFactory>(_ =>
                 {
                     var loggerFactory = new LoggerFactory();
                     loggerFactory.AddProvider(new NLogLoggerProvider());
