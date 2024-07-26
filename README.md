@@ -22,3 +22,4 @@ The program uses the `SetWindowsHookEx` function to install a hook procedure tha
 - https://github.com/rvknth043/Global-Low-Level-Key-Board-And-Mouse-Hook
 - https://sharphook.tolik.io/v5.3.7/
 - https://github.com/TolikPylypchuk/libuiohook
+- https://github.com/jaredpar/pinvoke-interop-assistant
