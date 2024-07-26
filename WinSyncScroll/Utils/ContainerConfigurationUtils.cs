@@ -8,25 +8,30 @@ namespace WinSyncScroll.Utils;
 
 public static class ContainerConfigurationUtils
 {
-        private static IServiceCollection ConfigureServices(this IServiceCollection services, string[] commandLineOptions)
+        private static IServiceCollection ConfigureServices(this IServiceCollection services)
         {
             return services
-                // Logging
-                .AddSingleton(s => new LoggerFactory().AddNLog())
+                /* Logging */
+                .AddSingleton(_ =>
+                {
+                    var loggerFactory = new LoggerFactory();
+                    loggerFactory.AddProvider(new NLogLoggerProvider());
+                    return loggerFactory;
+                })
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
-                // Services
+                /* Services */
                 .AddScoped<MouseHook>()
                 .AddScoped<WinApiService>()
-                // ViewModels
+                /* ViewModels */
                 .AddScoped<MainViewModel>()
-                // Windows
+                /* Windows */
                 .AddScoped<MainWindow>();
         }
 
-        public static IServiceProvider CreateServiceProvider(string[] commandLineOptions)
+        public static IServiceProvider CreateServiceProvider()
         {
             return new ServiceCollection()
-                .ConfigureServices(commandLineOptions)
+                .ConfigureServices()
                 .BuildServiceProvider();
         }
     }

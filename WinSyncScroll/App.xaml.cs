@@ -6,6 +6,8 @@ using WinSyncScroll.Enums;
 using WinSyncScroll.Extensions;
 using WinSyncScroll.Utils;
 
+#pragma warning disable S2139
+
 namespace WinSyncScroll;
 
 /// <summary>
@@ -31,7 +33,7 @@ public partial class App : Application
     {
         try
         {
-            var serviceProvider = ContainerConfigurationUtils.CreateServiceProvider(startupEventArgs.Args);
+            var serviceProvider = ContainerConfigurationUtils.CreateServiceProvider();
             Logger = serviceProvider.GetRequiredService<ILogger<App>>();
             Logger?.LogDebug("Start {Name} on {MachineName} as {UserName}", Assembly.GetExecutingAssembly().GetName().Name, Environment.MachineName, Environment.UserName);
 
@@ -62,5 +64,6 @@ public partial class App : Application
 
     private void App_OnExit(object sender, ExitEventArgs exitEventArgs)
     {
+        AppMutex.ReleaseMutex();
     }
 }

@@ -10,4 +10,4 @@ public record WindowInfo(
 {
     public string DisplayName { get; } = $"{WindowName} [{ProcessName}, class: {ClassName}], pid: {ProcessId}, hwnd: {WindowHandle}";
     public long WindowHandleLong { get; } = (long)WindowHandle;
-};
+}

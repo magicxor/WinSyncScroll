@@ -1,0 +1,236 @@
+﻿root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.cs]
+# CS1998: Async method lacks 'await' operators and will run synchronously
+# Reason: sometimes we need to have async mocks
+dotnet_diagnostic.CS1998.severity = suggestion
+
+# CA1848: For improved performance, use the LoggerMessage delegates instead of calling 'LoggerExtensions.LogDebug(ILogger, string?, params object?[])'
+# Reason: it could be too verbose to use it everywhere, but this is a good reminder
+dotnet_diagnostic.CA1848.severity = suggestion
+
+# CA1822: Member 'GetPagedResult' does not access instance data and can be marked as static
+# Reason: it may be more convenient to preserve a method as non-static
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# SA1600: Elements should be documented
+# Reason: it doesn't respect internal modifier
+dotnet_diagnostic.SA1600.severity = none
+
+# SA1602: Enumeration items should be documented
+# Reason: it doesn't respect internal modifier
+dotnet_diagnostic.SA1602.severity = none
+
+# SA1101: Prefix local calls with this
+dotnet_diagnostic.SA1101.severity = none
+
+# SA1516: Elements should be separated by blank line
+dotnet_diagnostic.SA1516.severity = none
+
+# SA1633: The file header is missing or not located at the top of the file.
+dotnet_diagnostic.SA1633.severity = none
+
+# SA1200: Using directive should appear within a namespace declaration
+dotnet_diagnostic.SA1200.severity = none
+
+# SA1000: The keyword 'new' should be followed by a space.
+dotnet_diagnostic.SA1000.severity = none
+
+# SA1208: Using directive for 'System.Collections.Generic' should appear before directive for 'Microsoft.AspNetCore.Identity'
+dotnet_diagnostic.SA1208.severity = none
+
+# SA1309: Field '_address' should not begin with an underscore
+dotnet_diagnostic.SA1309.severity = none
+
+# SA1206: The 'required' modifier should appear before 'public'
+dotnet_diagnostic.SA1206.severity = none
+
+# S1135 Complete the task associated to this 'T O D O' comment.
+dotnet_diagnostic.S1135.severity = suggestion
+
+# SA0001: XML comment analysis is disabled due to project configuration
+dotnet_diagnostic.SA0001.severity = none
+
+# SA1210: Using directives should be ordered alphabetically by the namespaces.
+dotnet_diagnostic.SA1210.severity = none
+
+# RCS1194: Implement exception constructors.
+dotnet_diagnostic.RCS1194.severity = suggestion
+
+# S3925: Update this implementation of 'ISerializable' to conform to the recommended serialization pattern.
+dotnet_diagnostic.S3925.severity = suggestion
+
+# SA1111: Closing parenthesis should be on line of last parameter
+# Reason: sometimes it's more readable to have a line break before closing parenthesis
+dotnet_diagnostic.SA1111.severity = none
+
+# SA1009: Closing parenthesis should not be preceded by a space.
+# Reason: sometimes it's more readable to have a line break before closing parenthesis
+dotnet_diagnostic.SA1009.severity = none
+
+# SA1110: Opening parenthesis or bracket should be on declaration line.
+dotnet_diagnostic.SA1110.severity = error
+
+# SA1129: Do not use default value type constructor
+dotnet_diagnostic.SA1129.severity = suggestion
+
+# SA1026: The keyword 'new' should not be followed by a space or a blank line.
+dotnet_diagnostic.SA1026.severity = suggestion
+
+# SA1116: The parameters should begin on the line after the declaration,
+# whenever the parameter span across multiple lines
+dotnet_diagnostic.SA1116.severity = none
+
+# S1450: Remove the field '_consumer' and declare it as a local variable in the relevant methods.
+dotnet_diagnostic.S1450.severity = suggestion
+
+# SA1209: Using alias directives should be placed after all using namespace directives.
+dotnet_diagnostic.SA1209.severity = suggestion
+
+# S3358: Extract this nested ternary operation into an independent statement.
+dotnet_diagnostic.S3358.severity = suggestion
+
+# S3267: Loops should be simplified with "LINQ" expressions
+# Reason: resulting code is less readable
+dotnet_diagnostic.S3267.severity = none
+
+# S1199: Extract this nested code block into a separate method.
+dotnet_diagnostic.S1199.severity = suggestion
+
+# RCS0027: Place new line after/before binary operator
+dotnet_diagnostic.RCS0027.severity = error
+
+# RCS0028: Place new line after/before '?:' operator
+dotnet_diagnostic.RCS0028.severity = error
+
+# RCS0054: Fix formatting of a call chain
+# Reason: sometimes it fails to format correctly
+dotnet_diagnostic.RCS0054.severity = suggestion
+
+# RCS0059: Place new line after/before null-conditional operator
+dotnet_diagnostic.RCS0059.severity = error
+
+# ROS0003: Analyzer requires config option to be specified.
+dotnet_diagnostic.ROS0003.severity = warning
+
+# RCS1006: Merge 'else' with nested 'if'
+dotnet_diagnostic.RCS1006.severity = error
+
+# RCS1013: Use predefined type
+dotnet_diagnostic.RCS1013.severity = error
+
+# RCS1019: Order modifiers
+dotnet_diagnostic.RCS1019.severity = error
+
+# RCS1113: Use 'string.IsNullOrEmpty' method
+dotnet_diagnostic.RCS1113.severity = error
+
+# RCS1190: Join string expressions
+dotnet_diagnostic.RCS1190.severity = error
+
+# RCS1197: Optimize StringBuilder.Append/AppendLine call
+dotnet_diagnostic.RCS1197.severity = error
+
+# RCS1200: Call 'Enumerable.ThenBy' instead of 'Enumerable.OrderBy'
+dotnet_diagnostic.RCS1200.severity = error
+
+# RCS1222: Merge preprocessor directives
+dotnet_diagnostic.RCS1222.severity = error
+
+# RCS1233: Use short-circuiting operator
+dotnet_diagnostic.RCS1233.severity = error
+
+# RCS1235: Optimize method call
+dotnet_diagnostic.RCS1235.severity = error
+
+# SA1028: Code should not contain trailing whitespace
+# Reason: Visual Studio Code does not respect trim_trailing_whitespace = true
+dotnet_diagnostic.SA1028.severity = none
+
+# RCS1037: Remove trailing white-space.
+# Reason: Visual Studio Code does not respect trim_trailing_whitespace = true
+dotnet_diagnostic.RCS1037.severity = none
+
+# IDE0160: Convert to file-scoped namespace
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_diagnostic.IDE0161.severity = error
+
+# MA0006: Use string.Equals instead of Equals operator
+dotnet_diagnostic.MA0006.severity = none
+
+# CA1721: Property names should not match get methods
+dotnet_diagnostic.CA1721.severity = none
+
+# CA1859: Change return type of method 'TransformOrderByItems' from 'System.Collections.Generic.IReadOnlyCollection<OrderByItem>' to 'System.Collections.ObjectModel.ReadOnlyCollection<OrderByItem>' for improved performance
+dotnet_diagnostic.CA1859.severity = suggestion
+
+# SA1201: A constructor should not follow a property
+dotnet_diagnostic.SA1201.severity = none
+
+# SA1629: Documentation text should end with a period
+dotnet_diagnostic.SA1629.severity = none
+
+# SA1202: 'public' members should come before 'private' members
+dotnet_diagnostic.SA1202.severity = none
+
+# S3869: Refactor the code to remove this use of 'SafeHandle.DangerousGetHandle'.
+dotnet_diagnostic.S3869.severity = suggestion
+
+# CA1031: Modify 'Uninstall' to catch a more specific allowed exception type, or rethrow the exception
+dotnet_diagnostic.CA1031.severity = suggestion
+
+# MA0055: Do not use finalizer
+dotnet_diagnostic.MA0055.severity = none
+
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = none
+
+# SA1010: Opening square brackets should not be preceded by a space.
+dotnet_diagnostic.SA1010.severity = none
+
+# MA0004: Use Task.ConfigureAwait(false) if the current SynchronizationContext is not needed
+dotnet_diagnostic.MA0004.severity = none
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none
+
+# SA1204: Static members should appear before non-static members
+dotnet_diagnostic.SA1204.severity = none
+
+# MA0051: Method is too long (106 lines; maximum allowed: 60)
+dotnet_diagnostic.MA0051.severity = suggestion
+
+# S125: Remove this commented out code.
+dotnet_diagnostic.S125.severity = suggestion
+
+# SA1114: Parameter list should follow declaration
+dotnet_diagnostic.SA1114.severity = suggestion
+
+# CA1016: Mark assemblies with AssemblyVersion
+dotnet_diagnostic.CA1016.severity = none
+
+# SA1313: Parameter 'ProcessName' should begin with lower-case letter
+dotnet_diagnostic.SA1313.severity = none
+
+# MA0016 : Prefer using collection abstraction instead of implementation
+dotnet_diagnostic.MA0016.severity = suggestion
+
+# CA1002: Change 'List<WindowInfo>' in 'WinApiService.ListWindows()' to use 'Collection<T>', 'ReadOnlyCollection<T>' or 'KeyedCollection<K,V>'
+dotnet_diagnostic.CA1002.severity = suggestion
+
+# formatting rules
+indent_size = 4
+roslynator_binary_operator_new_line = before
+roslynator_conditional_operator_new_line = before
+roslynator_null_conditional_operator_new_line = before
+
+[*.{json,env,yml,yaml,xml,xsd,html,cshtml,csproj,dcproj,props,sln,resx}]
+indent_size = 2

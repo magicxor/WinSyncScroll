@@ -5,7 +5,6 @@ using WinSyncScroll.Exceptions;
 using WinSyncScroll.Models;
 
 // ReSharper disable CheckNamespace
-
 namespace Windows.Win32;
 
 internal partial class PInvoke
@@ -43,7 +42,6 @@ internal partial class PInvoke
 
                 return string.Empty;
             }
-
 
             var resultLength = windowTextLength > bufferSize
                 ? bufferSize

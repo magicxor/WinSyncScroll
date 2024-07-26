@@ -24,6 +24,9 @@ public sealed partial class MainViewModel : IDisposable
     private readonly WinApiService _winApiService;
     private readonly MouseHook _mouseHook;
 
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly PeriodicTimer _updateMouseHookRectsTimer = new(TimeSpan.FromMilliseconds(500));
+
     // ReSharper disable once MemberCanBePrivate.Global
     public ObservableCollection<WindowInfo> Windows { get; } = [];
 
@@ -35,12 +38,10 @@ public sealed partial class MainViewModel : IDisposable
     public RelayCommand StopCommand { get; }
 
     [Notify]
-    // ReSharper disable once InconsistentNaming
-    private WindowInfo? _source { get; set; }
+    private WindowInfo? _source;
 
     [Notify]
-    // ReSharper disable once InconsistentNaming
-    private WindowInfo? _target { get; set; }
+    private WindowInfo? _target;
 
     [Notify]
     private AppState _appState = AppState.NotRunning;
@@ -70,9 +71,6 @@ public sealed partial class MainViewModel : IDisposable
 
     private Task? _mouseEventProcessingLoopTask;
     private Task? _updateMouseHookRectsLoopTask;
-
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly PeriodicTimer _updateMouseHookRectsTimer = new(TimeSpan.FromMilliseconds(500));
 
     private int _smCxScreen;
     private int _smCyScreen;
@@ -157,12 +155,17 @@ public sealed partial class MainViewModel : IDisposable
         );
     }
 
+    private Point CalculateCenterOfWindow(WindowRect rect)
+    {
+        return new Point(
+            rect.Left + ((rect.Right - rect.Left) / 2),
+            rect.Top + ((rect.Bottom - rect.Top) / 2));
+    }
+
     private async Task RunMouseEventProcessingLoopAsync(
-        Channel<MouseEventArgs> channel,
+        Channel<MouseMessageInfo> channel,
         CancellationToken cancellationToken = default)
     {
-        // todo: process a batch of events at once?
-
         while (await channel.Reader.WaitToReadAsync(cancellationToken))
         {
             while (channel.Reader.TryRead(out var buffer))
@@ -231,8 +234,9 @@ public sealed partial class MainViewModel : IDisposable
                     if (!WinApiUtils.PointInRect(targetRect, targetX, targetY))
                     {
                         _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
-                        targetX = targetRect.Left + targetRect.Right / 2;
-                        targetY = targetRect.Top + targetRect.Bottom / 2;
+                        var centerOfTarget = CalculateCenterOfWindow(targetRect);
+                        targetX = centerOfTarget.X;
+                        targetY = centerOfTarget.Y;
                     }
 
                     var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
@@ -284,12 +288,8 @@ public sealed partial class MainViewModel : IDisposable
                     var sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
                     var targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
 
-                    var centerOfSource = new Point(
-                        sourceRect.Left + sourceRect.Right / 2,
-                        sourceRect.Top + sourceRect.Bottom / 2);
-                    var centerOfTarget = new Point(
-                        targetRect.Left + targetRect.Right / 2,
-                        targetRect.Top + targetRect.Bottom / 2);
+                    var centerOfSource = CalculateCenterOfWindow(sourceRect);
+                    var centerOfTarget = CalculateCenterOfWindow(targetRect);
 
                     var actualSourceWindowHwnd = PInvoke.WindowFromPoint(centerOfSource);
                     var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
@@ -301,7 +301,6 @@ public sealed partial class MainViewModel : IDisposable
                         || actualTargetWindowProcessId != Target.ProcessId)
                     {
                         // _logger.LogTrace("Source or target window is not in the foreground, setting rects to null");
-
                         _mouseHook.SetSourceRect(null);
                         _mouseHook.SetTargetRect(null);
                     }
@@ -444,5 +443,6 @@ public sealed partial class MainViewModel : IDisposable
         _mouseEventProcessingLoopTask?.Dispose();
         _mouseHook.Dispose();
         _cancellationTokenSource.Dispose();
+        _updateMouseHookRectsTimer.Dispose();
     }
 }

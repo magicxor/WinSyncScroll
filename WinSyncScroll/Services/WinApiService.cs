@@ -15,7 +15,7 @@ public class WinApiService
         _logger = logger;
     }
 
-    public List<WindowInfo> ListWindows()
+    public ICollection<WindowInfo> ListWindows()
     {
         _logger.LogDebug("Listing windows");
 
@@ -49,6 +49,7 @@ public class WinApiService
                     _logger.LogWarning("Failed to get process ID for window with handle {WindowHandle}", windowHandle);
                     continue;
                 }
+
                 if (processId == currentProcessId)
                 {
                     continue;

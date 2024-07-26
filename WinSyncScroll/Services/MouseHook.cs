@@ -6,15 +6,16 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Microsoft.Extensions.Logging;
 using Vanara.PInvoke;
+using WinSyncScroll.Exceptions;
 using WinSyncScroll.Models;
 
 namespace WinSyncScroll.Services;
 
 public sealed class MouseHook : IDisposable
 {
-    private readonly ILogger<MouseHook> _logger;
+    public const int InjectedEventMagicNumber = 520165553;
 
-    public Channel<MouseEventArgs> HookEvents { get; } = Channel.CreateUnbounded<MouseEventArgs>();
+    private readonly ILogger<MouseHook> _logger;
 
     private UnhookWindowsHookExSafeHandle? _unhookSafeHandle;
     private Process? _process;
@@ -26,7 +27,7 @@ public sealed class MouseHook : IDisposable
     private volatile WindowRect? _targetRect;
     private volatile DateTimeObj _preventRealScrollEvents = new(DateTime.MinValue);
 
-    public const int InjectedEventMagicNumber = 520165553;
+    public Channel<MouseMessageInfo> HookEvents { get; } = Channel.CreateUnbounded<MouseMessageInfo>();
 
     public MouseHook(ILogger<MouseHook> logger)
     {
@@ -36,7 +37,7 @@ public sealed class MouseHook : IDisposable
     private UnhookWindowsHookExSafeHandle SetHook(HOOKPROC proc)
     {
         _process = Process.GetCurrentProcess();
-        _module = _process.MainModule ?? throw new Exception("Failed to get main module");
+        _module = _process.MainModule ?? throw new ServiceException("Failed to get main module");
         _moduleHandle = PInvoke.GetModuleHandle(_module.ModuleName);
         _hookProc = proc;
         return PInvoke.SetWindowsHookEx(WINDOWS_HOOK_ID.WH_MOUSE_LL, _hookProc, _moduleHandle, 0);
@@ -99,27 +100,24 @@ public sealed class MouseHook : IDisposable
                 {
                     // we have nothing to do with injected events
                 }
-                else
+                else if (_sourceRect is not null
+                         && WinApiUtils.PointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
+                         && (wParam == WinApiConstants.WM_MOUSEWHEEL
+                             || wParam == WinApiConstants.WM_MOUSEHWHEEL))
                 {
-                    if (_sourceRect is not null
-                        && WinApiUtils.PointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
-                        && (wParam == WinApiConstants.WM_MOUSEWHEEL
-                            || wParam == WinApiConstants.WM_MOUSEHWHEEL))
+                    // we should process scroll events in this area
+                    HookEvents.Writer.TryWrite(new MouseMessageInfo
                     {
-                        // we should process scroll events in this area
-                        HookEvents.Writer.TryWrite(new MouseEventArgs
-                        {
-                            MouseMessageId = wParam,
-                            MouseMessageData = mouseLowLevelData,
-                        });
-                    }
-                    else if (IsPreventRealScrollEventsActive()
-                             && _targetRect is not null
-                             && WinApiUtils.PointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
-                    {
-                        // prevent the system from passing the message to the rest of the hook chain or the target window procedure
-                        return (LRESULT)1;
-                    }
+                        MouseMessageId = wParam,
+                        MouseMessageData = mouseLowLevelData,
+                    });
+                }
+                else if (IsPreventRealScrollEventsActive()
+                         && _targetRect is not null
+                         && WinApiUtils.PointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                {
+                    // prevent the system from passing the message to the rest of the hook chain or the target window procedure
+                    return (LRESULT)1;
                 }
             }
         }
@@ -156,10 +154,7 @@ public sealed class MouseHook : IDisposable
 
     public void Uninstall()
     {
-        if (_unhookSafeHandle != null
-            && _unhookSafeHandle is not null
-            && !_unhookSafeHandle.IsInvalid
-            && !_unhookSafeHandle.IsClosed)
+        if (_unhookSafeHandle is { IsInvalid: false, IsClosed: false })
         {
             _logger.LogInformation("Uninstalling mouse hook");
             try

@@ -10,9 +10,14 @@ public static class WinApiUtils
     {
         // Ensure the words fit within their respective 16-bit spaces
         if (hiWord < 0 || hiWord > 0xFFFF)
+        {
             throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
+        }
+
         if (loWord < 0 || loWord > 0xFFFF)
+        {
             throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
+        }
 
         // Combine HIWORD and LOWORD into a single nuint value
         nuint wParam = (nuint)((hiWord << 16) | (loWord & 0xFFFF));
@@ -23,9 +28,14 @@ public static class WinApiUtils
     {
         // Ensure the words fit within their respective 16-bit spaces
         if (hiWord < 0 || hiWord > 0xFFFF)
+        {
             throw new ArgumentOutOfRangeException(nameof(hiWord), "HIWORD must be between 0 and 65535.");
+        }
+
         if (loWord < 0 || loWord > 0xFFFF)
+        {
             throw new ArgumentOutOfRangeException(nameof(loWord), "LOWORD must be between 0 and 65535.");
+        }
 
         // Combine HIWORD and LOWORD into a single nint value
         nint lParam = (hiWord << 16) | (loWord & 0xFFFF);
@@ -48,6 +58,8 @@ public static class WinApiUtils
 
     public static bool PointInRect(WindowRect windowRect, int x, int y)
     {
+        ArgumentNullException.ThrowIfNull(windowRect);
+
         return x >= windowRect.Left
                && x <= windowRect.Right
                && y >= windowRect.Top
