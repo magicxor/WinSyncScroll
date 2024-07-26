@@ -226,6 +226,9 @@ dotnet_diagnostic.MA0016.severity = suggestion
 # CA1002: Change 'List<WindowInfo>' in 'WinApiService.ListWindows()' to use 'Collection<T>', 'ReadOnlyCollection<T>' or 'KeyedCollection<K,V>'
 dotnet_diagnostic.CA1002.severity = suggestion
 
+# SA1623: The property's documentation summary text should begin with: 'Gets or sets'
+dotnet_diagnostic.SA1623.severity = suggestion
+
 # formatting rules
 indent_size = 4
 roslynator_binary_operator_new_line = before

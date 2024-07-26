@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using System.Windows.Data;
-using System.Windows.Media;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -14,6 +13,8 @@ using PropertyChanged.SourceGenerator;
 using WinSyncScroll.Enums;
 using WinSyncScroll.Models;
 using WinSyncScroll.Services;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
 using HWND = Windows.Win32.Foundation.HWND;
 
 namespace WinSyncScroll.ViewModels;

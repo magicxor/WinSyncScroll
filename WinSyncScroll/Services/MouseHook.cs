@@ -96,7 +96,7 @@ public sealed class MouseHook : IDisposable
             {
                 var mouseLowLevelData = (User32.MSLLHOOKSTRUCT)mouseLowLevelDataObj;
 
-                if (mouseLowLevelData.dwExtraInfo == InjectedEventMagicNumber)
+                if (mouseLowLevelData.dwExtraInfo == (IntPtr)InjectedEventMagicNumber)
                 {
                     // we have nothing to do with injected events
                 }
