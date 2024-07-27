@@ -1,7 +1,7 @@
 ﻿namespace WinSyncScroll.Exceptions;
 
 [Serializable]
-public class ServiceException : Exception
+public sealed class ServiceException : Exception
 {
     public ServiceException()
     {

@@ -1,6 +1,6 @@
 ﻿namespace WinSyncScroll.Models;
 
-public record WindowInfo(
+public sealed record WindowInfo(
     string WindowName,
     string ClassName,
     IntPtr WindowHandle,
