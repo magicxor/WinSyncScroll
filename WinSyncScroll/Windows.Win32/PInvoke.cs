@@ -82,13 +82,12 @@ internal partial class PInvoke
     {
         if (GetWindowRect(windowHandle, out var rectStruct))
         {
-            return new WindowRect
-            {
-                Left = rectStruct.left,
-                Top = rectStruct.top,
-                Right = rectStruct.right,
-                Bottom = rectStruct.bottom,
-            };
+            return new WindowRect(
+                Left: rectStruct.left,
+                Top: rectStruct.top,
+                Right: rectStruct.right,
+                Bottom: rectStruct.bottom
+            );
         }
         else
         {

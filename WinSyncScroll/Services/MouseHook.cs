@@ -106,11 +106,7 @@ public sealed class MouseHook : IDisposable
                              || wParam == WinApiConstants.WM_MOUSEHWHEEL))
                 {
                     // we should process scroll events in this area
-                    HookEvents.Writer.TryWrite(new MouseMessageInfo
-                    {
-                        MouseMessageId = wParam,
-                        MouseMessageData = mouseLowLevelData,
-                    });
+                    HookEvents.Writer.TryWrite(new MouseMessageInfo(wParam, mouseLowLevelData));
                 }
                 else if (IsPreventRealScrollEventsActive()
                          && _targetRect is not null

@@ -1,3 +1,5 @@
 ﻿namespace WinSyncScroll.Models;
 
-public record DateTimeObj(DateTime DateTime);
+public sealed record DateTimeObj(
+    DateTime DateTime
+);
