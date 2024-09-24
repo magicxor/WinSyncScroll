@@ -157,7 +157,7 @@ public sealed partial class MainViewModel : IDisposable
         );
     }
 
-    private Point CalculateCenterOfWindow(WindowRect rect)
+    private static Point CalculateCenterOfWindow(WindowRect rect)
     {
         return new Point(
             rect.Left + ((rect.Right - rect.Left) / 2),

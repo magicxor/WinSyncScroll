@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,12 +20,12 @@ public sealed partial class App : Application
 
     private static readonly Mutex AppMutex = new(true, "WinSyncScroll_C2EFE215-EDB7-4D88-8D25-76727E2E0DFB");
 
-    private MainWindow ResolveMainWindow(IServiceProvider serviceProvider)
+    private static MainWindow ResolveMainWindow(IServiceProvider serviceProvider)
     {
         return serviceProvider.GetRequiredService<MainWindow>();
     }
 
-    private void ShowMainWindow(MainWindow mainWindow)
+    private static void ShowMainWindow(MainWindow mainWindow)
     {
         mainWindow.Show();
     }
@@ -62,6 +63,7 @@ public sealed partial class App : Application
         }
     }
 
+    [SuppressMessage("Minor Code Smell", "S2325:Methods and properties that don\'t access instance data should be static", Justification = "WPF API")]
     private void App_OnExit(object sender, ExitEventArgs exitEventArgs)
     {
         AppMutex.ReleaseMutex();
