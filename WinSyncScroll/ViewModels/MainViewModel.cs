@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -11,6 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using PropertyChanged.SourceGenerator;
 using WinSyncScroll.Enums;
+using WinSyncScroll.Extensions;
 using WinSyncScroll.Models;
 using WinSyncScroll.Services;
 using Brush = System.Windows.Media.Brush;
@@ -162,6 +164,10 @@ public sealed partial class MainViewModel : IDisposable
             rect.Top + ((rect.Bottom - rect.Top) / 2));
     }
 
+    // protection is disabled because MS Word reports a different process ID for the window
+    [SuppressMessage("Performance", "CA1802:Use literals where appropriate", Justification = "This is an option")]
+    private static readonly bool IsStrictProcessIdCheckEnabled = false;
+
     private async Task RunMouseEventProcessingLoopAsync(
         Channel<MouseMessageInfo> channel,
         CancellationToken cancellationToken = default)
@@ -212,17 +218,20 @@ public sealed partial class MainViewModel : IDisposable
 
                     if (!WinApiUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
                     {
-                        // _logger.LogTrace("Mouse event is not in the source window, skipping");
+                        _logger.LogTrace("Mouse event is not in the source window, skipping");
                         continue;
                     }
 
-                    var actualSourceWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
-                    var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
-
-                    if (actualSourceProcessId != Source.ProcessId)
+                    if (IsStrictProcessIdCheckEnabled)
                     {
-                        _logger.LogTrace("Actual source window does not belong to the selected source process, skipping");
-                        continue;
+                        var actualSourceWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
+                        var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
+
+                        if (actualSourceProcessId != Source.ProcessId)
+                        {
+                            _logger.LogTrace("Window in source rect (pid={ActualSourceProcessId}) does not belong to the selected source process (pid={SourceProcessId}), skipping", actualSourceProcessId, Source.ProcessId);
+                            continue;
+                        }
                     }
 
                     var relativeX = sourceEventX - sourceRect.Left;
@@ -239,13 +248,16 @@ public sealed partial class MainViewModel : IDisposable
                         targetY = centerOfTarget.Y;
                     }
 
-                    var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
-                    var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
-
-                    if (actualTargetWindowProcessId != Target.ProcessId)
+                    if (IsStrictProcessIdCheckEnabled)
                     {
-                        _logger.LogTrace("Actual target window does not belong to the selected target process, skipping");
-                        continue;
+                        var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
+                        var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
+
+                        if (actualTargetWindowProcessId != Target.ProcessId)
+                        {
+                            _logger.LogTrace("Window in target rect (pid={ActualTargetWindowProcessId}) does not belong to the selected target process (pid={TargetProcessId}), skipping", actualTargetWindowProcessId, Target.ProcessId);
+                            continue;
+                        }
                     }
 
                     // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
@@ -262,6 +274,13 @@ public sealed partial class MainViewModel : IDisposable
                     var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
                     _mouseHook.SetPreventRealScrollEvents();
+
+                    _logger.LogTrace("Sending input to target window: {Inputs}",
+                        string.Join(
+                            Environment.NewLine,
+                            inputs.Select((item, index) =>
+                                $"{index.ToStringInvariant()}: {item.ToLogString()}"))
+                        );
                     PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
                 }
                 catch (Exception e)
@@ -290,27 +309,8 @@ public sealed partial class MainViewModel : IDisposable
                     var sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
                     var targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
 
-                    var centerOfSource = CalculateCenterOfWindow(sourceRect);
-                    var centerOfTarget = CalculateCenterOfWindow(targetRect);
-
-                    var actualSourceWindowHwnd = PInvoke.WindowFromPoint(centerOfSource);
-                    var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
-
-                    var actualTargetWindowHwnd = PInvoke.WindowFromPoint(centerOfTarget);
-                    var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
-
-                    if (actualSourceProcessId != Source.ProcessId
-                        || actualTargetWindowProcessId != Target.ProcessId)
-                    {
-                        // _logger.LogTrace("Source or target window is not in the foreground, setting rects to null");
-                        _mouseHook.SetSourceRect(null);
-                        _mouseHook.SetTargetRect(null);
-                    }
-                    else
-                    {
-                        _mouseHook.SetSourceRect(sourceRect);
-                        _mouseHook.SetTargetRect(targetRect);
-                    }
+                    _mouseHook.SetSourceRect(sourceRect);
+                    _mouseHook.SetTargetRect(targetRect);
                 }
                 catch (Exception e)
                 {
