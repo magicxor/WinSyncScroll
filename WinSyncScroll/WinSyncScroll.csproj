@@ -2,11 +2,12 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <ApplicationIcon>Resources\Icon\app_icon.ico</ApplicationIcon>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -46,6 +47,10 @@
       <PackageReference Include="Microsoft.Windows.WDK.Win32Metadata" Version="0.12.8-experimental" />
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
       <PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
+      <PackageReference Include="PolySharp" Version="1.14.1">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.0.8">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -66,6 +71,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
       <PackageReference Include="Vanara.PInvoke.User32" Version="4.0.2" />
     </ItemGroup>
 

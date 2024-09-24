@@ -1,6 +1,7 @@
 ﻿// ReSharper disable CheckNamespace
 
 using WinSyncScroll.Models;
+using WinSyncScroll.Shim;
 
 namespace Windows.Win32;
 
@@ -58,7 +59,7 @@ public static class WinApiUtils
 
     public static bool PointInRect(WindowRect windowRect, int x, int y)
     {
-        ArgumentNullException.ThrowIfNull(windowRect);
+        ArgumentNullExceptionShim.ThrowIfNull(windowRect);
 
         return x >= windowRect.Left
                && x <= windowRect.Right

@@ -51,7 +51,7 @@ public static class Invariant
 
     public static string ToStringInvariant(this nint value)
     {
-        return value.ToString(CultureInfo.InvariantCulture);
+        return $"{value}";
     }
 
     public static string ToStringInvariant(this uint value)
@@ -61,7 +61,7 @@ public static class Invariant
 
     public static string ToStringInvariant(this nuint value)
     {
-        return value.ToString(CultureInfo.InvariantCulture);
+        return $"{value}";
     }
 
     public static string ToStringInvariant(this long value)

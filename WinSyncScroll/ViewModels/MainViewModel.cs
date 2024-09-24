@@ -28,7 +28,6 @@ public sealed partial class MainViewModel : IDisposable
     private readonly MouseHook _mouseHook;
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly PeriodicTimer _updateMouseHookRectsTimer = new(TimeSpan.FromMilliseconds(500));
 
     // ReSharper disable once MemberCanBePrivate.Global
     public ObservableCollection<WindowInfo> Windows { get; } = [];
@@ -294,8 +293,10 @@ public sealed partial class MainViewModel : IDisposable
 
     private async Task RunUpdateMouseHookRectsLoopAsync(CancellationToken token)
     {
-        while (await _updateMouseHookRectsTimer.WaitForNextTickAsync(token))
+        while (!token.IsCancellationRequested)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(500), token);
+
             if (AppState == AppState.NotRunning || Source is null || Target is null)
             {
                 _mouseHook.SetSourceRect(null);
@@ -444,6 +445,5 @@ public sealed partial class MainViewModel : IDisposable
         _mouseEventProcessingLoopTask?.Dispose();
         _mouseHook.Dispose();
         _cancellationTokenSource.Dispose();
-        _updateMouseHookRectsTimer.Dispose();
     }
 }
