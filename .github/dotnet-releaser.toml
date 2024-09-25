@@ -21,7 +21,7 @@ repo = "WinSyncScroll"
 publish = false
 
 [[pack]]
-rid = ["win-x64"]
+rid = ["win-x64", "win-arm64"]
 kinds = ["zip"]
 
 [scoop]
