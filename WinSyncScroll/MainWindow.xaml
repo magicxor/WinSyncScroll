@@ -7,7 +7,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:fa6="http://schemas.fontawesome.com/icons/svg"
         mc:Ignorable="d"
-        Title="WinSyncScroll"
+        Title="{Binding AppTitle}"
         Loaded="WindowLoaded"
         Closing="WindowClosing"
         Icon="./Resources/Icon/app_icon_64.png"

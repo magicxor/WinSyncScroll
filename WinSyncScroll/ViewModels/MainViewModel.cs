@@ -71,6 +71,8 @@ public sealed partial class MainViewModel : IDisposable
         ? Brushes.Black
         : Brushes.DimGray;
 
+    public static string AppTitle => $"WinSyncScroll {System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion}";
+
     private Task? _mouseEventProcessingLoopTask;
     private Task? _updateMouseHookRectsLoopTask;
 
