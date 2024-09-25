@@ -11,6 +11,15 @@
     </PropertyGroup>
 
     <PropertyGroup>
+      <Version>0.0.1</Version>
+      <Copyright>Ilia Burakov</Copyright>
+      <Authors>Ilia Burakov</Authors>
+      <PackageTags>windows;hooks;wpf;scrolling;winapi;scroll;pinvoke;mouse;win32;windows-api;mouse-events;win64;mouse-emulation;input-simulation</PackageTags>
+      <PackageProjectUrl>https://github.com/magicxor/WinSyncScroll</PackageProjectUrl>
+      <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <!-- Code analysis -->
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>8-all</AnalysisLevel>

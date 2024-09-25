@@ -1,0 +1,45 @@
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
+
+name: release
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Get branch and tag
+        id: branch_name
+        run: |
+          echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Replace project version
+        env:
+          GIT_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+        # replace <Version>0.0.1</Version> with <Version>$GIT_TAG</Version>
+        # in "./WinSyncScroll/WinSyncScroll.csproj"
+        run: |
+          if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
+          sed -i "s/<Version>.*<\/Version>/<Version>${appversion}<\/Version>/" ./WinSyncScroll/WinSyncScroll.csproj
+
+      - name: Build, Tests, Cover, Pack and Publish (on push tag)
+        shell: bash
+        run: |
+          dotnet tool install --global dotnet-releaser
+          dotnet-releaser run --github-token "${{secrets.GITHUB_TOKEN}}" .github/dotnet-releaser.toml

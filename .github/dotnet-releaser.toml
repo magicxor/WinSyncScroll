@@ -1,0 +1,17 @@
+profile = "custom"
+artifacts_folder = "artifacts"
+
+[msbuild]
+project = "./WinSyncScroll/WinSyncScroll.csproj"
+configuration = "Release"
+
+[github]
+user = "magicxor"
+repo = "dotnet-releaser"
+
+[nuget]
+publish = false
+
+[[pack]]
+rid = ["win-x64", "win-arm64"]
+kinds = ["zip"]
