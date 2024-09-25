@@ -5,6 +5,14 @@ artifacts_folder = "artifacts"
 project = "../WinSyncScroll/WinSyncScroll.csproj"
 configuration = "Release"
 
+[msbuild.properties]
+PublishTrimmed = false
+PublishSingleFile = false
+SelfContained = true
+PublishReadyToRun = true
+CopyOutputSymbolsToPublishDirectory = false
+SkipCopyingSymbolsToOutputDirectory = true
+
 [github]
 user = "magicxor"
 repo = "WinSyncScroll"
