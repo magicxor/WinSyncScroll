@@ -266,6 +266,18 @@ public sealed partial class MainViewModel : IDisposable
                     var (sourceAbsoluteX, sourceAbsoluteY) = CalculateAbsoluteCoordinates(sourceEventX, sourceEventY);
                     var (targetAbsoluteX, targetAbsoluteY) = CalculateAbsoluteCoordinates(targetX, targetY);
 
+                    _logger.LogTrace("Converted coordinates: Source=({SourceEventX},{SourceEventY}) -> ({SourceAbsoluteX},{SourceAbsoluteY}), Target=({TargetX},{TargetY}) -> ({TargetAbsoluteX},{TargetAbsoluteY}). _smCxScreen={SmCxScreen}, _smCyScreen={SmCyScreen}",
+                        sourceEventX,
+                        sourceEventY,
+                        sourceAbsoluteX,
+                        sourceAbsoluteY,
+                        targetX,
+                        targetY,
+                        targetAbsoluteX,
+                        targetAbsoluteY,
+                        _smCxScreen,
+                        _smCyScreen);
+
                     var inputMoveToTarget = CreateMoveInput(targetAbsoluteX, targetAbsoluteY);
                     var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, delta);
                     var inputMoveToSource = CreateMoveInput(sourceAbsoluteX, sourceAbsoluteY);
@@ -275,7 +287,8 @@ public sealed partial class MainViewModel : IDisposable
 
                     _mouseHook.SetPreventRealScrollEvents();
 
-                    _logger.LogTrace("Sending input to target window: {Inputs}",
+                    _logger.LogTrace("Sending input to target window: {NewLine}{Inputs}",
+                        Environment.NewLine,
                         string.Join(
                             Environment.NewLine,
                             inputs.Select((item, index) =>
