@@ -7,7 +7,7 @@ configuration = "Release"
 
 [github]
 user = "magicxor"
-repo = "dotnet-releaser"
+repo = "WinSyncScroll"
 
 [nuget]
 publish = false
