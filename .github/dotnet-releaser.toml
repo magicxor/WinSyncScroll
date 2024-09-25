@@ -23,3 +23,6 @@ publish = false
 [[pack]]
 rid = ["win-x64"]
 kinds = ["zip"]
+
+[scoop]
+publish = false
