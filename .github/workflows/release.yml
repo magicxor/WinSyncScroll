@@ -73,9 +73,9 @@ jobs:
               target_commitish: process.env.DEFAULT_BRANCH,
             });
 
-            # SyntaxError: Unexpected identifier 'JSON'
-            # echo JSON.stringify(notes)
-            console.log(notes);
+            const body = notes.body;
+
+            require('fs').writeFileSync('release_notes.md', body);
 
       - name: Build
         working-directory: ./WinSyncScroll
@@ -91,8 +91,8 @@ jobs:
         with:
           prerelease: ${{ steps.ref_info.outputs.IS_PRERELEASE }}
           make_latest: ${{ steps.ref_info.outputs.MAKE_LATEST }}
-          #body_path: release_notes.md
-          generate_release_notes: true
+          body_path: release_notes.md
+          #generate_release_notes: true
           files: |
             ./WinSyncScroll/WinSyncScroll_win-x64_net8.0-windows.zip
             ./WinSyncScroll/WinSyncScroll_win-x64_net462.zip
