@@ -43,13 +43,16 @@ jobs:
         run: |
           dotnet publish -c release -r win-x64 --framework net8.0-windows --self-contained
           dotnet publish -c release -r win-x64 --framework net462
-          zip -r WinSyncScroll_win-x64_net8.0-windows.zip ./bin/release/net8.0-windows/win-x64/publish
-          zip -r WinSyncScroll_win-x64_net462.zip ./bin/release/net462/win-x64/publish
+          7z a WinSyncScroll_win-x64_net8.0-windows.zip ./bin/release/net8.0-windows/win-x64/publish/*
+          7z a WinSyncScroll_win-x64_net462.zip ./bin/release/net462/win-x64/publish/*
 
       - name: Publish
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          prerelease: if contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') then 'true' else 'false'
+          make_latest: if contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') then 'false' else 'true'
+          generate_release_notes: true
           files: |
             ./WinSyncScroll/WinSyncScroll_win-x64_net8.0-windows.zip
             ./WinSyncScroll/WinSyncScroll_win-x64_net462.zip
