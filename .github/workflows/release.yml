@@ -73,7 +73,9 @@ jobs:
               target_commitish: process.env.DEFAULT_BRANCH,
             });
 
-            echo JSON.stringify(notes)
+            # SyntaxError: Unexpected identifier 'JSON'
+            # echo JSON.stringify(notes)
+            console.log(notes);
 
       - name: Build
         working-directory: ./WinSyncScroll
