@@ -38,8 +38,18 @@ jobs:
           if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
           sed -i "s/<Version>.*<\/Version>/<Version>${appversion}<\/Version>/" ./WinSyncScroll/WinSyncScroll.csproj
 
-      - name: Build, Tests, Cover, Pack and Publish (on push tag)
-        shell: bash
+      - name: Build
+        working-directory: ./WinSyncScroll
         run: |
-          dotnet tool install --global dotnet-releaser
-          dotnet-releaser run --github-token "${{secrets.GITHUB_TOKEN}}" .github/dotnet-releaser.toml
+          dotnet publish -c release -r win-x64 --framework net8.0-windows --self-contained
+          dotnet publish -c release -r win-x64 --framework net462
+          zip -r WinSyncScroll_win-x64_net8.0-windows.zip ./bin/release/net8.0-windows/win-x64/publish
+          zip -r WinSyncScroll_win-x64_net462.zip ./bin/release/net462/win-x64/publish
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ./WinSyncScroll/WinSyncScroll_win-x64_net8.0-windows.zip
+            ./WinSyncScroll/WinSyncScroll_win-x64_net462.zip
