@@ -1,0 +1,41 @@
+﻿<Window x:Class="ShowWndProcMessages.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ShowWndProcMessages"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        mc:Ignorable="d"
+        Title="{Binding Title}"
+        Loaded="WindowLoaded"
+        Closing="WindowClosing"
+        Height="450"
+        Width="800">
+        <Canvas Height="Auto" Width="Auto">
+                <Grid Canvas.ZIndex="0">
+                        <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"></RowDefinition>
+                                <RowDefinition Height="1*"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Row="0"
+                               Content="{Binding ScrollCoordinateMessage}" />
+                        <Label Grid.Row="1"
+                               Content="{Binding CursorPositionMessage}" />
+                </Grid>
+
+                <Ellipse Canvas.ZIndex="2"
+                         Width="50"
+                         Height="50"
+                         Stroke="Black"
+                         StrokeThickness="4"
+                         Visibility="{Binding ScrollAreaVisibility}"
+                         Canvas.Left="{Binding XScrollWpfCoordinate}"
+                         Canvas.Top="{Binding YScrollWpfCoordinate}" />
+        </Canvas>
+</Window>
