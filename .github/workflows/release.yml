@@ -24,19 +24,49 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Get branch and tag
-        id: branch_name
+      - name: Get ref info
+        id: ref_info
         run: |
           echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
+          echo "VERSION=${appversion}" >> $GITHUB_OUTPUT
+          if [[ ${GIT_TAG} =~ (alpha|beta|rc) ]]; then echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT; else echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT; fi
+          if [[ ${GIT_TAG} =~ (alpha|beta|rc) ]]; then echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT; else echo "MAKE_LATEST=true" >> $GITHUB_OUTPUT; fi
 
       - name: Replace project version
         env:
-          GIT_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+          VERSION: ${{ steps.ref_info.outputs.VERSION }}
         # replace <Version>0.0.1</Version> with <Version>$GIT_TAG</Version>
         # in "./WinSyncScroll/WinSyncScroll.csproj"
         run: |
-          if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
-          sed -i "s/<Version>.*<\/Version>/<Version>${appversion}<\/Version>/" ./WinSyncScroll/WinSyncScroll.csproj
+          sed -i "s/<Version>.*<\/Version>/<Version>${VERSION}<\/Version>/" ./WinSyncScroll/WinSyncScroll.csproj
+
+      - name: Generate release notes
+        uses: actions/github-script@v7
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          VERSION: ${{ steps.ref_info.outputs.VERSION }}
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const draft = true;
+            let version = process.env.VERSION;
+
+            if (version.startsWith('v')) {
+              version = version.slice(1);
+            }
+
+            const tag_name = version;
+            const name = tag_name;
+
+            const { data: notes } = await github.rest.repos.generateReleaseNotes({
+              owner,
+              repo,
+              tag_name,
+              target_commitish: process.env.DEFAULT_BRANCH,
+            });
+
+            require('fs').writeFileSync('release_notes.md', notes);
 
       - name: Build
         working-directory: ./WinSyncScroll
@@ -50,9 +80,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          prerelease: if contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') then 'true' else 'false'
-          make_latest: if contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') then 'false' else 'true'
-          generate_release_notes: true
+          prerelease: ${{ steps.ref_info.outputs.IS_PRERELEASE }}
+          make_latest: ${{ steps.ref_info.outputs.MAKE_LATEST }}
+          body_path: release_notes.md
           files: |
             ./WinSyncScroll/WinSyncScroll_win-x64_net8.0-windows.zip
             ./WinSyncScroll/WinSyncScroll_win-x64_net462.zip
