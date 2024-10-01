@@ -27,10 +27,15 @@ jobs:
       - name: Get ref info
         id: ref_info
         run: |
+          echo "1"
           echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "2"
           if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
+          echo "3"
           echo "VERSION=${appversion}" >> $GITHUB_OUTPUT
+          echo "4"
           if [[ ${GIT_TAG} =~ (alpha|beta|rc) ]]; then echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT; else echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT; fi
+          echo "5"
           if [[ ${GIT_TAG} =~ (alpha|beta|rc) ]]; then echo "MAKE_LATEST=false" >> $GITHUB_OUTPUT; else echo "MAKE_LATEST=true" >> $GITHUB_OUTPUT; fi
 
       - name: Replace project version
