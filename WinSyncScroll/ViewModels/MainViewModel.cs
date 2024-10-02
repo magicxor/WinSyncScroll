@@ -10,6 +10,7 @@ using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PropertyChanged.SourceGenerator;
 using WinSyncScroll.Enums;
 using WinSyncScroll.Extensions;
@@ -24,6 +25,7 @@ namespace WinSyncScroll.ViewModels;
 public sealed partial class MainViewModel : IDisposable
 {
     private readonly ILogger<MainViewModel> _logger;
+    private readonly IOptions<GeneralOptions> _options;
     private readonly WinApiService _winApiService;
     private readonly MouseHook _mouseHook;
 
@@ -79,12 +81,16 @@ public sealed partial class MainViewModel : IDisposable
     private int _smCxScreen;
     private int _smCyScreen;
 
+    private static readonly int SizeOfInput = Marshal.SizeOf(typeof(INPUT));
+
     public MainViewModel(
         ILogger<MainViewModel> logger,
+        IOptions<GeneralOptions> options,
         WinApiService winApiService,
         MouseHook mouseHook)
     {
         _logger = logger;
+        _options = options;
         _winApiService = winApiService;
         _mouseHook = mouseHook;
 
@@ -166,9 +172,16 @@ public sealed partial class MainViewModel : IDisposable
             rect.Top + ((rect.Bottom - rect.Top) / 2));
     }
 
-    // protection is disabled because MS Word reports a different process ID for the window
-    [SuppressMessage("Performance", "CA1802:Use literals where appropriate", Justification = "This is an option")]
-    private static readonly bool IsStrictProcessIdCheckEnabled = false;
+    private void LogSendInput(INPUT[] inputs)
+    {
+        _logger.LogTrace("Sending input to target window: {NewLine}{Inputs}",
+            Environment.NewLine,
+            string.Join(
+                Environment.NewLine,
+                inputs.Select((item, index) =>
+                    $"{index.ToStringInvariant()}: {item.ToLogString()}"))
+        );
+    }
 
     private async Task RunMouseEventProcessingLoopAsync(
         Channel<MouseMessageInfo> channel,
@@ -224,7 +237,7 @@ public sealed partial class MainViewModel : IDisposable
                         continue;
                     }
 
-                    if (IsStrictProcessIdCheckEnabled)
+                    if (_options.Value.IsStrictProcessIdCheckEnabled)
                     {
                         var actualSourceWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
                         var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
@@ -250,7 +263,7 @@ public sealed partial class MainViewModel : IDisposable
                         targetY = centerOfTarget.Y;
                     }
 
-                    if (IsStrictProcessIdCheckEnabled)
+                    if (_options.Value.IsStrictProcessIdCheckEnabled)
                     {
                         var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
                         var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
@@ -285,18 +298,23 @@ public sealed partial class MainViewModel : IDisposable
                     var inputMoveToSource = CreateMoveInput(sourceAbsoluteX, sourceAbsoluteY);
 
                     var inputs = new[] { inputMoveToTarget, inputScrollTarget, inputMoveToSource };
-                    var sizeOfInput = Marshal.SizeOf(typeof(INPUT));
 
                     _mouseHook.SetPreventRealScrollEvents();
 
-                    _logger.LogTrace("Sending input to target window: {NewLine}{Inputs}",
-                        Environment.NewLine,
-                        string.Join(
-                            Environment.NewLine,
-                            inputs.Select((item, index) =>
-                                $"{index.ToStringInvariant()}: {item.ToLogString()}"))
-                        );
-                    PInvoke.SendInput(inputs.AsSpan(), sizeOfInput);
+                    LogSendInput(inputs);
+
+                    if (_options.Value.InputDelay == 0)
+                    {
+                        PInvoke.SendInput(inputs.AsSpan(), SizeOfInput);
+                    }
+                    else
+                    {
+                        PInvoke.SendInput(inputs.AsSpan().Slice(0, 1), SizeOfInput);
+                        await Task.Delay(_options.Value.InputDelay, cancellationToken);
+                        PInvoke.SendInput(inputs.AsSpan().Slice(1, 1), SizeOfInput);
+                        await Task.Delay(_options.Value.InputDelay, cancellationToken);
+                        PInvoke.SendInput(inputs.AsSpan().Slice(2, 1), SizeOfInput);
+                    }
                 }
                 catch (Exception e)
                 {
