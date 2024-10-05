@@ -14,8 +14,6 @@ namespace WinSyncScroll.Services;
 
 public sealed class MouseHook : IDisposable
 {
-    public const int InjectedEventMagicNumber = 520165553;
-
     private readonly ILogger<MouseHook> _logger;
 
     private UnhookWindowsHookExSafeHandle? _unhookSafeHandle;
@@ -97,7 +95,7 @@ public sealed class MouseHook : IDisposable
             {
                 var mouseLowLevelData = (User32.MSLLHOOKSTRUCT)mouseLowLevelDataObj;
 
-                if (mouseLowLevelData.dwExtraInfo == (IntPtr)InjectedEventMagicNumber)
+                if (mouseLowLevelData.IsInjected())
                 {
                     // we have nothing to do with injected events
                     _logger.LogTrace("Ignoring injected mouse event: {MouseLowLevelData}", mouseLowLevelData.ToLogString());

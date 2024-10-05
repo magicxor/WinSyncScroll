@@ -136,7 +136,7 @@ public sealed partial class MainViewModel : IDisposable
         inputScroll.Anonymous.mi.mouseData = (uint)delta;
         inputScroll.Anonymous.mi.dx = absoluteX;
         inputScroll.Anonymous.mi.dy = absoluteY;
-        inputScroll.Anonymous.mi.dwExtraInfo = MouseHook.InjectedEventMagicNumber;
+        inputScroll.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
 
         return inputScroll;
     }
@@ -152,7 +152,7 @@ public sealed partial class MainViewModel : IDisposable
         inputMove.Anonymous.mi.mouseData = 0;
         inputMove.Anonymous.mi.dx = absoluteX;
         inputMove.Anonymous.mi.dy = absoluteY;
-        inputMove.Anonymous.mi.dwExtraInfo = MouseHook.InjectedEventMagicNumber;
+        inputMove.Anonymous.mi.dwExtraInfo = (nuint)(nint)PInvoke.GetMessageExtraInfo();
 
         return inputMove;
     }
