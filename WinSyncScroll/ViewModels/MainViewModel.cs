@@ -303,17 +303,13 @@ public sealed partial class MainViewModel : IDisposable
 
                     LogSendInput(inputs);
 
-                    if (_options.Value.InputDelay == 0)
+                    if (!_options.Value.IsLegacyModeEnabled)
                     {
                         PInvoke.SendInput(inputs.AsSpan(), SizeOfInput);
                     }
                     else
                     {
-                        PInvoke.SendInput(inputs.AsSpan().Slice(0, 1), SizeOfInput);
-                        await Task.Delay(_options.Value.InputDelay, cancellationToken);
-                        PInvoke.SendInput(inputs.AsSpan().Slice(1, 1), SizeOfInput);
-                        await Task.Delay(_options.Value.InputDelay, cancellationToken);
-                        PInvoke.SendInput(inputs.AsSpan().Slice(2, 1), SizeOfInput);
+                        PInvoke.SendLegacyMouseInput(inputs.AsSpan());
                     }
                 }
                 catch (Exception e)

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using WinSyncScroll.Exceptions;
 using WinSyncScroll.Models;
 
@@ -100,6 +101,19 @@ internal partial class PInvoke
             {
                 throw new ServiceException("Failed to get window rect");
             }
+        }
+    }
+
+    public static void SendLegacyMouseInput(Span<INPUT> pInputs)
+    {
+        foreach (var pInput in pInputs)
+        {
+            mouse_event(
+                dwFlags: pInput.Anonymous.mi.dwFlags,
+                dx: pInput.Anonymous.mi.dx,
+                dy: pInput.Anonymous.mi.dy,
+                dwData: (int)pInput.Anonymous.mi.mouseData,
+                dwExtraInfo: pInput.Anonymous.mi.dwExtraInfo);
         }
     }
 }

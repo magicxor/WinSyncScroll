@@ -14,3 +14,4 @@ GetSystemMetrics
 WindowFromPoint
 mouse_event
 MulDiv
+GetMessageExtraInfo
