@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -37,7 +36,7 @@ public sealed partial class MainViewModel : IDisposable
     // ReSharper disable once MemberCanBePrivate.Global
     public ICollectionView WindowsOrdered { get; }
 
-    public RelayCommand RefreshWindowsCommand { get; }
+    public AsyncRelayCommand RefreshWindowsCommand { get; }
     public RelayCommand StartCommand { get; }
     public RelayCommand StopCommand { get; }
 
@@ -94,7 +93,7 @@ public sealed partial class MainViewModel : IDisposable
         _winApiService = winApiService;
         _mouseHook = mouseHook;
 
-        RefreshWindowsCommand = new RelayCommand(RefreshWindows);
+        RefreshWindowsCommand = new AsyncRelayCommand(RefreshWindowsAsync);
         StartCommand = new RelayCommand(Start);
         StopCommand = new RelayCommand(Stop);
 
@@ -352,11 +351,11 @@ public sealed partial class MainViewModel : IDisposable
         }
     }
 
-    private void RefreshWindows()
+    private async Task RefreshWindowsAsync()
     {
         _logger.LogInformation("Refreshing windows");
 
-        var newWindows = _winApiService.ListWindows();
+        var newWindows = await Task.Run(() => _winApiService.ListWindows());
 
         // remember the old windows to replace them with the new ones
         var oldSource = Source;
@@ -418,7 +417,7 @@ public sealed partial class MainViewModel : IDisposable
     public void Initialize()
     {
         InstallMouseHook();
-        RefreshWindows();
+        _ = RefreshWindowsAsync();
     }
 
     private void Start()
