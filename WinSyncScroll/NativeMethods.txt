@@ -12,3 +12,5 @@ CallNextHookEx
 GetModuleHandleW
 GetSystemMetrics
 WindowFromPoint
+mouse_event
+MulDiv

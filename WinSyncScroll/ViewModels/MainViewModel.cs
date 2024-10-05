@@ -160,8 +160,8 @@ public sealed partial class MainViewModel : IDisposable
     private (int X, int Y) CalculateAbsoluteCoordinates(int x, int y)
     {
         return (
-            X: (x * 65536) / _smCxScreen,
-            Y: (y * 65536) / _smCyScreen
+            X: PInvoke.MulDiv(x, 65536, _smCxScreen),
+            Y: PInvoke.MulDiv(y, 65536, _smCyScreen)
         );
     }
 
