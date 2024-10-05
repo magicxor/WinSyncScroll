@@ -22,7 +22,7 @@ public sealed partial class MainWindow : Window
 
     private void WindowLoaded(object sender, RoutedEventArgs e)
     {
-        _viewModel.Initialize();
+        _viewModel.Initialize(Dispatcher);
     }
 
     private void WindowClosing(object sender, CancelEventArgs e)

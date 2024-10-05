@@ -229,6 +229,12 @@ dotnet_diagnostic.CA1002.severity = suggestion
 # SA1623: The property's documentation summary text should begin with: 'Gets or sets'
 dotnet_diagnostic.SA1623.severity = suggestion
 
+# VSTHRD001: Await JoinableTaskFactory. SwitchToMainThreadAsync() to switch to the UI thread instead of APIs that can deadlock or require specifying a priority
+dotnet_diagnostic.VSTHRD001.severity = suggestion
+
+# AsyncFixer05: Downcasting from a nested task (Task<Task>) to a outer task or awaiting a nested task is occurred. UnWrap() is suggested
+dotnet_diagnostic.AsyncFixer05.severity = suggestion
+
 # formatting rules
 indent_size = 4
 roslynator_binary_operator_new_line = before

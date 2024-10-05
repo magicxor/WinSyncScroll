@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using System.Windows.Data;
+using System.Windows.Threading;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -18,6 +18,7 @@ using WinSyncScroll.Services;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using HWND = Windows.Win32.Foundation.HWND;
+using Point = System.Drawing.Point;
 
 namespace WinSyncScroll.ViewModels;
 
@@ -29,6 +30,7 @@ public sealed partial class MainViewModel : IDisposable
     private readonly MouseHook _mouseHook;
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private Dispatcher? _dispatcher;
 
     // ReSharper disable once MemberCanBePrivate.Global
     public ObservableCollection<WindowInfo> Windows { get; } = [];
@@ -346,6 +348,22 @@ public sealed partial class MainViewModel : IDisposable
 
                     _mouseHook.SetSourceRect(null);
                     _mouseHook.SetTargetRect(null);
+
+                    if (_dispatcher is not null)
+                    {
+                        await _dispatcher.InvokeAsync(async () =>
+                        {
+                            if (StopCommand.CanExecute(null))
+                            {
+                                StopCommand.Execute(null);
+                            }
+
+                            if (RefreshWindowsCommand.CanExecute(null))
+                            {
+                                await RefreshWindowsCommand.ExecuteAsync(null);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -414,8 +432,10 @@ public sealed partial class MainViewModel : IDisposable
         }
     }
 
-    public void Initialize()
+    public void Initialize(Dispatcher dispatcher)
     {
+        _dispatcher = dispatcher;
+
         InstallMouseHook();
         _ = RefreshWindowsAsync();
     }
