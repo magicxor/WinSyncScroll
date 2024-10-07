@@ -28,8 +28,8 @@ public sealed partial class MainViewModel
     private const int ScrollAreaEllipseSize = 50;
 
     public string Title { get; } = $"!TEST {RandomNumber}";
-    public string ScrollCoordinateMessage => $"X: {XScrollCoordinate}, Y: {YScrollCoordinate}";
-    public string CursorPositionMessage => $"X: {XCursorPosition}, Y: {YCursorPosition}";
+    public string ScrollCoordinateMessage => $"Scroll X: {XScrollCoordinate}, Y: {YScrollCoordinate}";
+    public string CursorPositionMessage => $"Cursor X: {XCursorPosition}, Y: {YCursorPosition}";
     public Visibility ScrollAreaVisibility => XScrollCoordinate > 0 || YScrollCoordinate > 0
         ? Visibility.Visible
         : Visibility.Hidden;
