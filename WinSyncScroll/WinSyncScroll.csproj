@@ -16,7 +16,9 @@
       <Copyright>Ilia Burakov</Copyright>
       <Authors>Ilia Burakov</Authors>
       <PackageTags>windows;hooks;wpf;scrolling;winapi;scroll;pinvoke;mouse;win32;windows-api;mouse-events;win64;mouse-emulation;input-simulation</PackageTags>
-      <PackageProjectUrl>https://github.com/magicxor/WinSyncScroll</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/magicxor/WinSyncScroll.git</RepositoryUrl>
+      <RepositoryType>git</RepositoryType>
+      <PublishRepositoryUrl>true</PublishRepositoryUrl>
       <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
     </PropertyGroup>
 
