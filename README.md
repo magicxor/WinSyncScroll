@@ -24,3 +24,4 @@ The program uses the `SetWindowsHookEx` function to install a hook procedure tha
 - [KatMouse](https://ehiti.de/katmouse/)
 - [WizMouse](https://antibody-software.com/wizmouse)
 - [X-Mouse Controls](https://github.com/joelpurra/xmouse-controls)
+- [AlwaysMouseWheel](http://www.softwareok.com/?Download=AlwaysMouseWheel)
