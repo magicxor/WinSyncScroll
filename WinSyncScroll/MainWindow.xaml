@@ -12,7 +12,10 @@
         Closing="WindowClosing"
         Icon="./Resources/Icon/app_icon_64.png"
         Height="200"
-        Width="800">
+        MinHeight="200"
+        MaxHeight="200"
+        Width="800"
+        MinWidth="300">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"></RowDefinition>
