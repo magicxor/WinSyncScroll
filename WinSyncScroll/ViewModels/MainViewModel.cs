@@ -51,7 +51,10 @@ public sealed partial class MainViewModel : IDisposable
     [Notify]
     private AppState _appState = AppState.NotRunning;
 
-    public bool IsRefreshButtonEnabled => AppState == AppState.NotRunning;
+    [Notify]
+    private bool _isRefreshing;
+
+    public bool IsRefreshButtonEnabled => AppState == AppState.NotRunning && !IsRefreshing;
 
     public bool IsStartButtonEnabled => AppState == AppState.NotRunning
                                         && Source != null
@@ -404,63 +407,71 @@ public sealed partial class MainViewModel : IDisposable
     private async Task RefreshWindowsAsync()
     {
         _logger.LogInformation("Refreshing windows");
+        IsRefreshing = true;
 
-        var newWindows = await Task.Run(() => _winApiService.ListWindows());
-
-        // remember the old windows to replace them with the new ones
-        var oldSource = Source;
-        var oldTarget = Target;
-
-        // remove windows that are not in the new list
-        var toBeRemoved = Windows
-            .Where(w => newWindows.All(nw => nw.WindowHandle != w.WindowHandle))
-            .ToList();
-
-        foreach (var window in toBeRemoved)
+        try
         {
-            Windows.Remove(window);
-        }
+            var newWindows = await Task.Run(() => _winApiService.ListWindows());
 
-        // update windows that are in the new list
-        var toBeUpdated = Windows
-            .Join(newWindows,
-                w => w.WindowHandle,
-                nw => nw.WindowHandle,
-                (w, nw) => new
-                {
-                    OldWindow = w,
-                    NewWindow = nw,
-                })
-            .ToList();
+            // remember the old windows to replace them with the new ones
+            var oldSource = Source;
+            var oldTarget = Target;
 
-        foreach (var windowToBeUpdated in toBeUpdated)
-        {
-            var i = Windows.IndexOf(windowToBeUpdated.OldWindow);
-            if (i != -1)
+            // remove windows that are not in the new list
+            var toBeRemoved = Windows
+                .Where(w => newWindows.All(nw => nw.WindowHandle != w.WindowHandle))
+                .ToList();
+
+            foreach (var window in toBeRemoved)
             {
-                Windows[i] = windowToBeUpdated.NewWindow;
+                Windows.Remove(window);
+            }
+
+            // update windows that are in the new list
+            var toBeUpdated = Windows
+                .Join(newWindows,
+                    w => w.WindowHandle,
+                    nw => nw.WindowHandle,
+                    (w, nw) => new
+                    {
+                        OldWindow = w,
+                        NewWindow = nw,
+                    })
+                .ToList();
+
+            foreach (var windowToBeUpdated in toBeUpdated)
+            {
+                var i = Windows.IndexOf(windowToBeUpdated.OldWindow);
+                if (i != -1)
+                {
+                    Windows[i] = windowToBeUpdated.NewWindow;
+                }
+            }
+
+            // add windows that are not in the old list
+            var toBeAdded = newWindows
+                .Where(nw => Windows.All(w => nw.WindowHandle != w.WindowHandle))
+                .ToList();
+
+            foreach (var window in toBeAdded)
+            {
+                Windows.Add(window);
+            }
+
+            // restore the old source and target windows
+            if (oldSource != null)
+            {
+                Source = Windows.FirstOrDefault(w => w.WindowHandle == oldSource.WindowHandle);
+            }
+
+            if (oldTarget != null)
+            {
+                Target = Windows.FirstOrDefault(w => w.WindowHandle == oldTarget.WindowHandle);
             }
         }
-
-        // add windows that are not in the old list
-        var toBeAdded = newWindows
-            .Where(nw => Windows.All(w => nw.WindowHandle != w.WindowHandle))
-            .ToList();
-
-        foreach (var window in toBeAdded)
+        finally
         {
-            Windows.Add(window);
-        }
-
-        // restore the old source and target windows
-        if (oldSource != null)
-        {
-            Source = Windows.FirstOrDefault(w => w.WindowHandle == oldSource.WindowHandle);
-        }
-
-        if (oldTarget != null)
-        {
-            Target = Windows.FirstOrDefault(w => w.WindowHandle == oldTarget.WindowHandle);
+            IsRefreshing = false;
         }
     }
 
