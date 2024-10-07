@@ -184,6 +184,28 @@ public sealed partial class MainViewModel : IDisposable
         );
     }
 
+    private static List<HWND> EnumChildWindows(HWND parentWindowHandle)
+    {
+        var windows = new List<HWND>();
+
+        PInvoke.EnumChildWindows(
+            parentWindowHandle,
+            (hwnd, _) =>
+            {
+                var isVisible = PInvoke.IsWindowVisible(hwnd);
+
+                if (isVisible)
+                {
+                    windows.Add(hwnd);
+                }
+
+                return true;
+            },
+            0);
+
+        return windows;
+    }
+
     private async Task RunMouseEventProcessingLoopAsync(
         Channel<MouseMessageInfo> channel,
         CancellationToken cancellationToken = default)
@@ -302,15 +324,25 @@ public sealed partial class MainViewModel : IDisposable
 
                     _mouseHook.SetPreventRealScrollEvents();
 
-                    LogSendInput(inputs);
-
                     if (!_options.Value.IsLegacyModeEnabled)
                     {
+                        LogSendInput(inputs);
                         PInvoke.SendInput(inputs.AsSpan(), SizeOfInput);
                     }
                     else
                     {
-                        PInvoke.SendLegacyMouseInput(inputs.AsSpan());
+                        var childWindows = EnumChildWindows((HWND)Target.WindowHandle);
+                        var lParam = PInvoke.MAKELPARAM((ushort)targetX, (ushort)targetY);
+
+                        foreach (var windowHandle in childWindows)
+                        {
+                            _logger.LogTrace("Sending message to window: hwnd={WindowHandle}, msg={MouseMessageId}, wParam={MouseData}, lParam={LParam}",
+                                windowHandle,
+                                buffer.MouseMessageId,
+                                buffer.MouseMessageData.mouseData,
+                                lParam);
+                            PInvoke.SendMessage(windowHandle, (uint)buffer.MouseMessageId, (nuint)buffer.MouseMessageData.mouseData, lParam);
+                        }
                     }
                 }
                 catch (Exception e)

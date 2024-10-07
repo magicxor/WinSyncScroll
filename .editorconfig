@@ -235,6 +235,9 @@ dotnet_diagnostic.VSTHRD001.severity = suggestion
 # AsyncFixer05: Downcasting from a nested task (Task<Task>) to a outer task or awaiting a nested task is occurred. UnWrap() is suggested
 dotnet_diagnostic.AsyncFixer05.severity = suggestion
 
+# CA2249 : Use 'string.Contains' instead of 'string.IndexOf' to improve readability
+dotnet_diagnostic.CA2249.severity = suggestion
+
 # formatting rules
 indent_size = 4
 roslynator_binary_operator_new_line = before
