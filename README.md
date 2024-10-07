@@ -21,3 +21,6 @@ The program uses the `SetWindowsHookEx` function to install a hook procedure tha
 - https://sharphook.tolik.io/v5.3.7/
 - https://github.com/TolikPylypchuk/libuiohook
 - https://github.com/jaredpar/pinvoke-interop-assistant
+- [KatMouse](https://ehiti.de/katmouse/)
+- [WizMouse](https://antibody-software.com/wizmouse)
+- [X-Mouse Controls](https://github.com/joelpurra/xmouse-controls)
