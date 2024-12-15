@@ -40,20 +40,20 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
       <PackageReference Include="FontAwesome6.Svg" Version="2.5.1" />
-      <PackageReference Include="Meziantou.Analyzer" Version="2.0.169">
+      <PackageReference Include="Meziantou.Analyzer" Version="2.0.182">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
-      <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20">
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.0" />
+      <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.12.19">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
@@ -64,8 +64,8 @@
       <PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="61.0.15-preview" />
       <PackageReference Include="Microsoft.Windows.WDK.Win32Metadata" Version="0.12.8-experimental" />
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-      <PackageReference Include="NLog.Extensions.Logging" Version="5.3.14" />
-      <PackageReference Include="PolySharp" Version="1.14.1">
+      <PackageReference Include="NLog.Extensions.Logging" Version="5.3.15" />
+      <PackageReference Include="PolySharp" Version="1.15.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
@@ -73,15 +73,15 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Roslynator.Analyzers" Version="4.12.8">
+      <PackageReference Include="Roslynator.Analyzers" Version="4.12.9">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.8">
+      <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.32.0.97167">
+      <PackageReference Include="SonarAnalyzer.CSharp" Version="10.3.0.106239">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
@@ -89,7 +89,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+      <PackageReference Include="System.Threading.Channels" Version="9.0.0" />
       <PackageReference Include="Vanara.PInvoke.User32" Version="4.0.4" />
     </ItemGroup>
 
