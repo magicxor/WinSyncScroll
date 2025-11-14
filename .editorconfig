@@ -17,6 +17,16 @@ dotnet_diagnostic.CS1998.severity = suggestion
 # Reason: it could be too verbose to use it everywhere, but this is a good reminder
 dotnet_diagnostic.CA1848.severity = suggestion
 
+# CA1416: This call site is reachable on all platforms. 'User32.MSLLHOOKSTRUCT.pt' is only supported on: 'windows'.
+dotnet_diagnostic.CA1416.severity = none
+
+# CA1873: Evaluation of this argument may be expensive and unnecessary if logging is disabled
+# Reason: logging performance is not critical in our context, and this warning is too aggressive
+dotnet_diagnostic.CA1873.severity = none
+
+# CA1515: Because an application's API isn't typically referenced from outside the assembly, types can be made internal
+dotnet_diagnostic.CA1515.severity = none
+
 # CA1822: Member 'GetPagedResult' does not access instance data and can be marked as static
 # Reason: it may be more convenient to preserve a method as non-static
 dotnet_diagnostic.CA1822.severity = suggestion

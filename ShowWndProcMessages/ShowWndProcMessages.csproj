@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
+        <TargetFrameworks>net462;net10.0-windows</TargetFrameworks>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -12,9 +12,9 @@
 
     <ItemGroup>
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.3" />
-      <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.1.1">
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+      <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.1.2">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>

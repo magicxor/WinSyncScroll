@@ -85,7 +85,7 @@ public sealed partial class MainViewModel : IDisposable
     private int _smCxScreen;
     private int _smCyScreen;
 
-    private static readonly int SizeOfInput = Marshal.SizeOf(typeof(INPUT));
+    private static readonly int SizeOfInput = Marshal.SizeOf<INPUT>();
 
     public MainViewModel(
         ILogger<MainViewModel> logger,
@@ -266,7 +266,7 @@ public sealed partial class MainViewModel : IDisposable
                     if (_options.Value.IsStrictProcessIdCheckEnabled)
                     {
                         var actualSourceWindowHwnd = PInvoke.WindowFromPoint(new Point(sourceEventX, sourceEventY));
-                        var (_, actualSourceProcessId, _) = PInvoke.GetWindowThreadProcessId(actualSourceWindowHwnd);
+                        var (_, actualSourceProcessId, _) = PInvoke.GetWindowInfo(actualSourceWindowHwnd);
 
                         if (actualSourceProcessId != Source.ProcessId)
                         {
@@ -292,7 +292,7 @@ public sealed partial class MainViewModel : IDisposable
                     if (_options.Value.IsStrictProcessIdCheckEnabled)
                     {
                         var actualTargetWindowHwnd = PInvoke.WindowFromPoint(new Point(targetX, targetY));
-                        var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowThreadProcessId(actualTargetWindowHwnd);
+                        var (_, actualTargetWindowProcessId, _) = PInvoke.GetWindowInfo(actualTargetWindowHwnd);
 
                         if (actualTargetWindowProcessId != Target.ProcessId)
                         {
