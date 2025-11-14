@@ -2,6 +2,7 @@
 Scroll two windows simultaneously
 
 [![release](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml/badge.svg)](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/magicxor/WinSyncScroll)
 
 ## Demo
 
