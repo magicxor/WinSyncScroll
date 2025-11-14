@@ -43,7 +43,7 @@ public sealed class WinApiService
                     continue;
                 }
 
-                var (_, processId, errorCode) = PInvoke.GetWindowThreadProcessId(windowHandle);
+                var (_, processId, errorCode) = PInvoke.GetWindowInfo(windowHandle);
                 if (processId == 0 || errorCode != 0)
                 {
                     _logger.LogWarning("Failed to get process ID for window with handle {WindowHandle}", windowHandle);

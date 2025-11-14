@@ -9,7 +9,7 @@ namespace Windows.Win32;
 
 internal partial class PInvoke
 {
-    internal static unsafe (uint ThreadId, uint ProcessId, int errorCode) GetWindowThreadProcessId(HWND hwnd)
+    internal static unsafe (uint ThreadId, uint ProcessId, int errorCode) GetWindowInfo(HWND hwnd)
     {
         uint lpdwProcessId;
         uint* lpdwProcessIdPtr = &lpdwProcessId;
