@@ -57,7 +57,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.242">
+      <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.248">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
@@ -104,6 +104,10 @@
       <Content Include="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WinSyncScroll.Common\WinSyncScroll.Common.csproj" />
     </ItemGroup>
 
 </Project>

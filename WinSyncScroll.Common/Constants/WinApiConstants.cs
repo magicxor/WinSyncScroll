@@ -4,7 +4,7 @@
 // underscored constants
 #pragma warning disable SA1310, CA1707, SA1119
 
-namespace Windows.Win32;
+namespace WinSyncScroll.Common;
 
 public static class WinApiConstants
 {

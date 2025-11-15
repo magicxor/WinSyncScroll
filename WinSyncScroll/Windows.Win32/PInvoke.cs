@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
+using WinSyncScroll.Common;
 using WinSyncScroll.Exceptions;
-using WinSyncScroll.Models;
 
 // ReSharper disable CheckNamespace
 namespace Windows.Win32;

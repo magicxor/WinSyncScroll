@@ -1,16 +1,13 @@
-﻿// ReSharper disable CheckNamespace
+﻿using System;
 
-using WinSyncScroll.Models;
-using WinSyncScroll.Shim;
-
-namespace Windows.Win32;
+namespace WinSyncScroll.Common;
 
 public static class WinApiUtils
 {
-    public static (short Low, short High) GetHiLoWords(uint value)
+    public static (int Low, int High) GetHiLoWords(IntPtr value)
     {
-        var low = BitConverter.ToInt16(BitConverter.GetBytes(value), 0);
-        var high = BitConverter.ToInt16(BitConverter.GetBytes(value), 2);
+        int low = unchecked((short)(long)value);
+        int high = unchecked((short)((long)value >> 16));
         return (Low: low, High: high);
     }
 

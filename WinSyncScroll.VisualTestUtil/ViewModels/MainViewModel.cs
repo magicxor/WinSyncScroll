@@ -1,7 +1,8 @@
-﻿using System.Windows;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
 using PropertyChanged.SourceGenerator;
 
-namespace ShowWndProcMessages;
+namespace WinSyncScroll.VisualTestUtil;
 
 public sealed partial class MainViewModel
 {
@@ -23,13 +24,17 @@ public sealed partial class MainViewModel
     [Notify]
     private int _yCursorPosition;
 
+    private const int MaxScrollEvents = 14;
+
+    public ObservableCollection<ScrollEventViewModel> ScrollEvents { get; set; } = [];
+
     private static readonly string RandomNumber = new Random().Next(int.MaxValue).ToString();
 
     private const int ScrollAreaEllipseSize = 50;
 
     public string Title { get; } = $"!TEST {RandomNumber}";
-    public string ScrollCoordinateMessage => $"Scroll X: {XScrollCoordinate}, Y: {YScrollCoordinate}";
-    public string CursorPositionMessage => $"Cursor X: {XCursorPosition}, Y: {YCursorPosition}";
+    public string ScrollCoordinateMessage => $"Last Scroll: X {XScrollCoordinate}, Y {YScrollCoordinate}";
+    public string CursorPositionMessage => $"Current Cursor: X {XCursorPosition}, Y {YCursorPosition}";
     public Visibility ScrollAreaVisibility => XScrollCoordinate > 0 || YScrollCoordinate > 0
         ? Visibility.Visible
         : Visibility.Hidden;
@@ -47,6 +52,18 @@ public sealed partial class MainViewModel
     {
         XCursorPosition = x;
         YCursorPosition = y;
+    }
+
+    public void AddScrollEvent(ScrollEventViewModel scrollEvent)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            ScrollEvents.Insert(0, scrollEvent);
+            if (ScrollEvents.Count > MaxScrollEvents)
+            {
+                ScrollEvents.RemoveAt(ScrollEvents.Count - 1);
+            }
+        });
     }
 
     public void Initialize()

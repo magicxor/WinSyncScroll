@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using Windows.Win32;
+using WinSyncScroll.Common;
 
-namespace ShowWndProcMessages;
+namespace WinSyncScroll.VisualTestUtil;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -68,6 +68,16 @@ public partial class MainWindow : Window
         }
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+
+        if (PresentationSource.FromVisual(this) is HwndSource hwndSource)
+        {
+            hwndSource.RemoveHook(WndProc);
+        }
+    }
+
     /// <summary>
     /// WndProc matches the HwndSourceHook delegate signature so it can be passed to AddHook() as a callback. This is the same as overriding a Windows.Form's WncProc method.
     /// </summary>
@@ -83,9 +93,21 @@ public partial class MainWindow : Window
 
         if (msg is WinApiConstants.WM_MOUSEWHEEL or WinApiConstants.WM_MOUSEHWHEEL)
         {
-            var (x, y) = WinApiUtils.GetHiLoWords((uint)lParam);
+            var (x, y) = WinApiUtils.GetHiLoWords(lParam);
+            var (virtualKeys, wheelDelta) = WinApiUtils.GetHiLoWords(wParam);
+
             var wpfPoint = PointFromScreen(new Point(x, y));
+
             _viewModel.UpdateLatestScrollCoordinates(x, y, (int)wpfPoint.X, (int)wpfPoint.Y);
+            _viewModel.AddScrollEvent(new ScrollEventViewModel
+            {
+                Timestamp = DateTime.Now,
+                Name = msg == WinApiConstants.WM_MOUSEWHEEL ? "WM_MOUSEWHEEL" : "WM_MOUSEHWHEEL",
+                X = x,
+                Y = y,
+                WheelDelta = wheelDelta,
+                VirtualKeys = virtualKeys,
+            });
         }
 
         return IntPtr.Zero;

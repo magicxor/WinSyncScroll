@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace ShowWndProcMessages;
+namespace WinSyncScroll.VisualTestUtil;
 
 public static class ContainerConfigurationUtils
 {
