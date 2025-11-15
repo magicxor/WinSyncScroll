@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ShowWndProcMessages;
+namespace WinSyncScroll.VisualTestUtil;
 
 /// <summary>
 /// Interaction logic for App.xaml

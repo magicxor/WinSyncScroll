@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PropertyChanged.SourceGenerator;
+using WinSyncScroll.Common;
 using WinSyncScroll.Enums;
 using WinSyncScroll.Extensions;
 using WinSyncScroll.Models;
@@ -302,7 +303,7 @@ public sealed partial class MainViewModel : IDisposable
                     }
 
                     // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
-                    var (_, delta) = WinApiUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
+                    var (_, delta) = WinApiUtils.GetHiLoWords((IntPtr)buffer.MouseMessageData.mouseData);
 
                     var (sourceAbsoluteX, sourceAbsoluteY) = CalculateAbsoluteCoordinates(sourceEventX, sourceEventY);
                     var (targetAbsoluteX, targetAbsoluteY) = CalculateAbsoluteCoordinates(targetX, targetY);
@@ -320,7 +321,7 @@ public sealed partial class MainViewModel : IDisposable
                         _smCyScreen);
 
                     var inputMoveToTarget = CreateMoveInput(targetAbsoluteX, targetAbsoluteY);
-                    var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, delta);
+                    var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, (short)delta);
                     var inputMoveToSource = CreateMoveInput(sourceAbsoluteX, sourceAbsoluteY);
 
                     var inputs = new[] { inputMoveToTarget, inputScrollTarget, inputMoveToSource };
