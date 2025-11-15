@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -124,7 +124,7 @@ public sealed partial class MainViewModel : IDisposable
             token);
     }
 
-    private static INPUT CreateScrollInput(nuint mouseMessageId, int absoluteX, int absoluteY, short delta)
+    private static INPUT CreateScrollInput(nuint mouseMessageId, int absoluteX, int absoluteY, int delta)
     {
         var inputScroll = new INPUT
         {
@@ -321,7 +321,7 @@ public sealed partial class MainViewModel : IDisposable
                         _smCyScreen);
 
                     var inputMoveToTarget = CreateMoveInput(targetAbsoluteX, targetAbsoluteY);
-                    var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, (short)delta);
+                    var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, delta);
                     var inputMoveToSource = CreateMoveInput(sourceAbsoluteX, sourceAbsoluteY);
 
                     var inputs = new[] { inputMoveToTarget, inputScrollTarget, inputMoveToSource };
