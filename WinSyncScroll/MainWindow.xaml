@@ -11,9 +11,9 @@
         Loaded="WindowLoaded"
         Closing="WindowClosing"
         Icon="./Resources/Icon/app_icon_64.png"
-        Height="200"
-        MinHeight="200"
-        MaxHeight="200"
+        Height="240"
+        MinHeight="240"
+        MaxHeight="240"
         Width="800"
         MinWidth="300">
     <Grid>
@@ -21,6 +21,7 @@
             <RowDefinition Height="1*"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="1*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -137,5 +138,12 @@
                 </StackPanel>
             </Button>
         </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding IsStrictProcessIdCheckStatusText}"></Label>
+            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding IsLegacyModeStatusText}"></Label>
+            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding CurrentRuntimeInfoText}"></Label>
+            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding CurrentOperatingSystemInfoText}"></Label>
+        </StackPanel>
     </Grid>
 </Window>

@@ -57,6 +57,14 @@ public sealed partial class MainViewModel : IDisposable
     [Notify]
     private bool _isRefreshing;
 
+    public string IsStrictProcessIdCheckStatusText => $"Process id check: {(_options.Value.IsStrictProcessIdCheckEnabled ? "ON" : "OFF")}";
+
+    public string IsLegacyModeStatusText => $"Legacy mode: {(_options.Value.IsLegacyModeEnabled ? "ON" : "OFF")}";
+
+    public string CurrentRuntimeInfoText { get; set; } = $"Runtime: {RuntimeInformation.FrameworkDescription}";
+
+    public string CurrentOperatingSystemInfoText { get; set; } = $"OS: {RuntimeInformation.OSDescription}";
+
     public bool IsRefreshButtonEnabled => AppState == AppState.NotRunning && !IsRefreshing;
 
     public bool IsStartButtonEnabled => AppState == AppState.NotRunning
