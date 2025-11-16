@@ -349,7 +349,7 @@ public sealed partial class MainViewModel : IDisposable
                         List<HWND> allWindows = [(HWND)Target.WindowHandle, ..childWindows];
 
                         // WM_MOUSEWHEEL and WM_MOUSEHWHEEL require screen coordinates in lParam, not client coordinates
-                        var lParam = PInvoke.MAKELPARAM((ushort)targetX, (ushort)targetY);
+                        var lParam = PInvoke.MAKELPARAM(unchecked((ushort)(short)targetX), unchecked((ushort)(short)targetY));
 
                         foreach (var windowHandle in allWindows)
                         {
