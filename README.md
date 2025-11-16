@@ -29,9 +29,22 @@ The program reads the configuration from the `appsettings.json` file. The config
 
 When `"IsLegacyModeEnabled": true`, the program uses `SendMessage` (instead of `SendInput`) to send the `WM_MOUSEWHEEL` (or `WM_MOUSEHWHEEL`) message to the target window.
 
+This mode is needed for:
+- Older operating systems that don't have the "Scroll inactive windows when hovering over them" setting
+- Remote Desktop (RDP) sessions
+- Users who prefer this mode because the cursor won't flicker
+
 ### Strict process id check
 
 When `"IsStrictProcessIdCheckEnabled": true`, the program uses `WindowFromPoint` + `GetWindowThreadProcessId` to prevent scrolling the target window if the target or source window is currently not in the foreground.
+
+## Troubleshooting
+
+If the application doesn't work, try the following:
+1. **Check Windows settings** - Make sure the "Scroll inactive windows when hovering over them" option is enabled in Windows Settings → Mouse (or enable Legacy mode if this option is unavailable)
+2. **Enable Legacy mode** - Set `"IsLegacyModeEnabled": true` in `appsettings.json`
+3. **Run as administrator** - Right-click the executable and select "Run as administrator"
+4. **Disable strict process id check** - Set `"IsStrictProcessIdCheckEnabled": false` in `appsettings.json`
 
 ## See also:
 - https://badecho.com/index.php/2024/01/13/external-window-messages/
