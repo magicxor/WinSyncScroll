@@ -1,15 +1,21 @@
 # WinSyncScroll
-Scroll two windows simultaneously
 
 [![release](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml/badge.svg)](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml)
 ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/magicxor/6ed947906b9d5040b5fa58d0bd56c1f4/raw/WinSyncScroll-cobertura-coverage.json)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/magicxor/WinSyncScroll)
+
+Scroll two windows simultaneously
 
 ## Demo
 
 https://github.com/user-attachments/assets/ba52c20e-1099-4e20-9b8d-f164d283c639
 
 https://github.com/user-attachments/assets/f2cc2020-cc07-411e-a4c7-7ef227d9cdda
+
+## Usage
+
+- **WinSyncScroll.exe** - The main application that users should run to synchronize scrolling between two windows.
+- **WinSyncScroll.VisualTestUtil.exe** - *(Optional)* A debugging utility that helps visualize which events are being received by the target window. Only needed for troubleshooting.
 
 ## How it works
 
@@ -23,9 +29,22 @@ The program reads the configuration from the `appsettings.json` file. The config
 
 When `"IsLegacyModeEnabled": true`, the program uses `SendMessage` (instead of `SendInput`) to send the `WM_MOUSEWHEEL` (or `WM_MOUSEHWHEEL`) message to the target window.
 
+This mode is needed for:
+- Older operating systems that don't have the "Scroll inactive windows when hovering over them" setting
+- Remote Desktop (RDP) sessions
+- Users who prefer this mode because the cursor won't flicker
+
 ### Strict process id check
 
 When `"IsStrictProcessIdCheckEnabled": true`, the program uses `WindowFromPoint` + `GetWindowThreadProcessId` to prevent scrolling the target window if the target or source window is currently not in the foreground.
+
+## Troubleshooting
+
+If the application doesn't work, try the following:
+1. **Check Windows settings** - Make sure the "Scroll inactive windows when hovering over them" option is enabled in Windows Settings → Mouse (or enable Legacy mode if this option is unavailable)
+2. **Enable Legacy mode** - Set `"IsLegacyModeEnabled": true` in `appsettings.json`
+3. **Run as administrator** - Right-click the executable and select "Run as administrator"
+4. **Disable strict process id check** - Set `"IsStrictProcessIdCheckEnabled": false` in `appsettings.json`
 
 ## See also:
 - https://badecho.com/index.php/2024/01/13/external-window-messages/
