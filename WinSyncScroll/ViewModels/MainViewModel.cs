@@ -260,7 +260,7 @@ public sealed partial class MainViewModel : IDisposable
                     var sourceRect = PInvoke.GetWindowRect((HWND)Source.WindowHandle);
                     var targetRect = PInvoke.GetWindowRect((HWND)Target.WindowHandle);
 
-                    if (!WinApiUtils.PointInRect(sourceRect, sourceEventX, sourceEventY))
+                    if (!WinApiUtils.IsPointInRect(sourceRect, sourceEventX, sourceEventY))
                     {
                         _logger.LogTrace("Mouse event is not in the source window, skipping");
                         continue;
@@ -284,7 +284,7 @@ public sealed partial class MainViewModel : IDisposable
                     var targetX = targetRect.Left + relativeX;
                     var targetY = targetRect.Top + relativeY;
 
-                    if (!WinApiUtils.PointInRect(targetRect, targetX, targetY))
+                    if (!WinApiUtils.IsPointInRect(targetRect, targetX, targetY))
                     {
                         _logger.LogTrace("Resulting mouse event is not in the target window, falling back to center of the target window");
                         var centerOfTarget = CalculateCenterOfWindow(targetRect);

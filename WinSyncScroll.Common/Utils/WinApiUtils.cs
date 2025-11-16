@@ -6,14 +6,15 @@ namespace WinSyncScroll.Common.Utils;
 
 public static class WinApiUtils
 {
-    public static (int Low, int High) GetHiLoWords(IntPtr value)
+    public static (short Low, short High) GetHiLoWords(IntPtr value)
     {
-        int low = unchecked((short)(long)value);
-        int high = unchecked((short)((long)value >> 16));
+        uint xy = unchecked(IntPtr.Size == 8 ? (uint)value.ToInt64() : (uint)value.ToInt32());
+        short low = unchecked((short)xy);
+        short high = unchecked((short)(xy >> 16));
         return (Low: low, High: high);
     }
 
-    public static bool PointInRect(WindowRect windowRect, int x, int y)
+    public static bool IsPointInRect(WindowRect windowRect, int x, int y)
     {
         ArgumentNullExceptionShim.ThrowIfNull(windowRect);
 
