@@ -140,10 +140,10 @@
         </Grid>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal">
-            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding IsStrictProcessIdCheckStatusText}"></Label>
-            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding IsLegacyModeStatusText}"></Label>
-            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding CurrentRuntimeInfoText}"></Label>
-            <Label DockPanel.Dock="Left" Width="Auto" Content="{Binding CurrentOperatingSystemInfoText}"></Label>
+            <Label Width="Auto" Content="{Binding IsStrictProcessIdCheckStatusText}"></Label>
+            <Label Width="Auto" Content="{Binding IsLegacyModeStatusText}"></Label>
+            <Label Width="Auto" Content="{Binding CurrentRuntimeInfoText}"></Label>
+            <Label Width="Auto" Content="{Binding CurrentOperatingSystemInfoText}"></Label>
         </StackPanel>
     </Grid>
 </Window>
