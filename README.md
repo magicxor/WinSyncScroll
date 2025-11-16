@@ -1,15 +1,21 @@
 # WinSyncScroll
-Scroll two windows simultaneously
 
 [![release](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml/badge.svg)](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml)
 ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/magicxor/6ed947906b9d5040b5fa58d0bd56c1f4/raw/WinSyncScroll-cobertura-coverage.json)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/magicxor/WinSyncScroll)
+
+Scroll two windows simultaneously
 
 ## Demo
 
 https://github.com/user-attachments/assets/ba52c20e-1099-4e20-9b8d-f164d283c639
 
 https://github.com/user-attachments/assets/f2cc2020-cc07-411e-a4c7-7ef227d9cdda
+
+## Usage
+
+- **WinSyncScroll.exe** - The main application that users should run to synchronize scrolling between two windows.
+- **WinSyncScroll.VisualTestUtil.exe** - *(Optional)* A debugging utility that helps visualize which events are being received by the target window. Only needed for troubleshooting.
 
 ## How it works
 
