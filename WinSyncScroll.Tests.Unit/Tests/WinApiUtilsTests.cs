@@ -1,7 +1,7 @@
 ﻿using WinSyncScroll.Common.Utils;
 using WinSyncScroll.Tests.Unit.Utils;
 
-namespace WinSyncScroll.Tests.Unit;
+namespace WinSyncScroll.Tests.Unit.Tests;
 
 public class WinApiUtilsTests
 {
@@ -18,7 +18,7 @@ public class WinApiUtilsTests
     public void GetHiLoWords_WhenGivenValidLParam_ReturnsExpectedValues(int expectedHiWord, int expectedLoWord)
     {
         var lParam = TestUtils.CreateLParam(expectedHiWord, expectedLoWord);
-        var (actualLoWord, actualHiWord) = WinApiUtils.GetHiLoWords(lParam);
+        var (actualLoWord, actualHiWord) = WinApiUtils.GetHiLoWords((uint)lParam);
 
         using (Assert.EnterMultipleScope())
         {
@@ -39,8 +39,8 @@ public class WinApiUtilsTests
     [TestCase(ushort.MaxValue, ushort.MaxValue)]
     public void GetHiLoWords_WhenGivenValidWParam_ReturnsExpectedValues(int expectedHiWord, int expectedLoWord)
     {
-        var lParam = TestUtils.CreateWParam(expectedHiWord, expectedLoWord);
-        var (actualLoWord, actualHiWord) = WinApiUtils.GetHiLoWords(IntPtr.CreateChecked(lParam));
+        var wParam = TestUtils.CreateWParam(expectedHiWord, expectedLoWord);
+        var (actualLoWord, actualHiWord) = WinApiUtils.GetHiLoWords((uint)wParam);
 
         using (Assert.EnterMultipleScope())
         {

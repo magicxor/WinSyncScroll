@@ -1,15 +1,14 @@
-﻿using System;
-using WinSyncScroll.Common.Models;
+﻿using WinSyncScroll.Common.Models;
 using WinSyncScroll.Common.Shim;
 
 namespace WinSyncScroll.Common.Utils;
 
 public static class WinApiUtils
 {
-    public static (int Low, int High) GetHiLoWords(IntPtr value)
+    public static (ushort Low, ushort High) GetHiLoWords(uint value)
     {
-        int low = unchecked((short)(long)value);
-        int high = unchecked((short)((long)value >> 16));
+        var low = (ushort)(value & 0xFFFF);
+        var high = (ushort)(value >> 16);
         return (Low: low, High: high);
     }
 

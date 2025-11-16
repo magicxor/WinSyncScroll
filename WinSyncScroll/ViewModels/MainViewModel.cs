@@ -305,7 +305,7 @@ public sealed partial class MainViewModel : IDisposable
                     }
 
                     // If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. The low-order word is reserved.
-                    var (_, delta) = WinApiUtils.GetHiLoWords((IntPtr)buffer.MouseMessageData.mouseData);
+                    var (_, delta) = WinApiUtils.GetHiLoWords(buffer.MouseMessageData.mouseData);
 
                     var (sourceAbsoluteX, sourceAbsoluteY) = CalculateAbsoluteCoordinates(sourceEventX, sourceEventY);
                     var (targetAbsoluteX, targetAbsoluteY) = CalculateAbsoluteCoordinates(targetX, targetY);

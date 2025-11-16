@@ -31,8 +31,4 @@
       <ProjectReference Include="..\WinSyncScroll.Common\WinSyncScroll.Common.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Tests\" />
-    </ItemGroup>
-
 </Project>
