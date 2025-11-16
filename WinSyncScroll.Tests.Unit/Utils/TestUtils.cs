@@ -4,6 +4,6 @@ public static class TestUtils
 {
     public static IntPtr CreateLParam(ushort hiWord, ushort loWord)
     {
-        return (hiWord << 16) | (loWord & 0xFFFF);
+        return (IntPtr)((hiWord << 16) | (loWord & 0xFFFF));
     }
 }

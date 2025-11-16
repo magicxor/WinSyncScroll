@@ -48,7 +48,7 @@ jobs:
         mkdir -p "$(dirname "$MERGED_REPORT_PATH")"
 
         echo "Searching for coverage files..."
-        find . -path '*/TestResults/coverage.cobertura.xml' -print0 | xargs -0 codecoverage merge -o "$MERGED_REPORT_PATH" -f cobertura
+        find . -path '*/TestResults/coverage*.cobertura.xml' -print0 | xargs -0 codecoverage merge -o "$MERGED_REPORT_PATH" -f cobertura
 
         if [ $? -eq 0 ]; then
           echo "Coverage files successfully merged into: $MERGED_REPORT_PATH"
