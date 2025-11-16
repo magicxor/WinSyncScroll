@@ -338,15 +338,19 @@ public sealed partial class MainViewModel : IDisposable
                     else
                     {
                         var childWindows = EnumChildWindows((HWND)Target.WindowHandle);
-                        var lParam = PInvoke.MAKELPARAM((ushort)targetX, (ushort)targetY);
+
+                        // WM_MOUSEWHEEL and WM_MOUSEHWHEEL require screen coordinates in lParam, not client coordinates
+                        var lParam = PInvoke.MAKELPARAM((ushort)targetAbsoluteX, (ushort)targetAbsoluteY);
 
                         foreach (var windowHandle in childWindows)
                         {
-                            _logger.LogTrace("Sending message to window: hwnd={WindowHandle}, msg={MouseMessageId}, wParam={MouseData}, lParam={LParam}",
+                            _logger.LogTrace("Sending message to window: hwnd={WindowHandle}, msg={MouseMessageId}, wParam={MouseData}, lParam={LParam} (screen coords: x={X}, y={Y})",
                                 windowHandle,
                                 buffer.MouseMessageId,
                                 buffer.MouseMessageData.mouseData,
-                                lParam);
+                                lParam,
+                                targetAbsoluteX,
+                                targetAbsoluteY);
                             PInvoke.SendMessage(windowHandle, (uint)buffer.MouseMessageId, (nuint)buffer.MouseMessageData.mouseData, lParam);
                         }
                     }
