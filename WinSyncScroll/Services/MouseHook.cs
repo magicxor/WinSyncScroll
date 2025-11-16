@@ -7,6 +7,8 @@ using Windows.Win32.UI.WindowsAndMessaging;
 using Microsoft.Extensions.Logging;
 using Vanara.PInvoke;
 using WinSyncScroll.Common;
+using WinSyncScroll.Common.Models;
+using WinSyncScroll.Common.Utils;
 using WinSyncScroll.Exceptions;
 using WinSyncScroll.Extensions;
 using WinSyncScroll.Models;

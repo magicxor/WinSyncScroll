@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using WinSyncScroll.Common;
+using WinSyncScroll.Common.Utils;
+using WinSyncScroll.VisualTestUtil.Models;
+using WinSyncScroll.VisualTestUtil.ViewModels;
 
 namespace WinSyncScroll.VisualTestUtil;
 

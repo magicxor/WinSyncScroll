@@ -1,4 +1,4 @@
-﻿namespace WinSyncScroll.Common;
+﻿namespace WinSyncScroll.Common.Models;
 
 public sealed record WindowRect(
     int Left,

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using WinSyncScroll.VisualTestUtil.ViewModels;
 
-namespace WinSyncScroll.VisualTestUtil;
+namespace WinSyncScroll.VisualTestUtil.Utils;
 
 public static class ContainerConfigurationUtils
 {
