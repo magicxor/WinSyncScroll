@@ -96,8 +96,8 @@ public partial class MainWindow : Window
 
         if (msg is WinApiConstants.WM_MOUSEWHEEL or WinApiConstants.WM_MOUSEHWHEEL)
         {
-            var (x, y) = WinApiUtils.GetHiLoWords((uint)lParam);
-            var (virtualKeys, wheelDelta) = WinApiUtils.GetHiLoWords((uint)wParam);
+            var (x, y) = WinApiUtils.GetHiLoWords(lParam);
+            var (virtualKeys, wheelDelta) = WinApiUtils.GetHiLoWords(wParam);
 
             var wpfPoint = PointFromScreen(new Point(x, y));
 

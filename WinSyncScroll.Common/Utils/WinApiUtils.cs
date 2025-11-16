@@ -1,16 +1,19 @@
-﻿using WinSyncScroll.Common.Models;
+﻿using System;
+using WinSyncScroll.Common.Models;
 using WinSyncScroll.Common.Shim;
 
 namespace WinSyncScroll.Common.Utils;
 
 public static class WinApiUtils
 {
-    public static (ushort Low, ushort High) GetHiLoWords(uint value)
+    public static (int Low, int High) GetHiLoWords(IntPtr value)
     {
-        var low = (ushort)(value & 0xFFFF);
-        var high = (ushort)(value >> 16);
+        uint xy = unchecked(IntPtr.Size == 8 ? (uint)value.ToInt64() : (uint)value.ToInt32());
+        int low = unchecked((short)xy);
+        int high = unchecked((short)(xy >> 16));
         return (Low: low, High: high);
     }
+
 
     public static bool IsPointInRect(WindowRect windowRect, int x, int y)
     {
