@@ -13,7 +13,7 @@ public static class WinApiUtils
         return (Low: low, High: high);
     }
 
-    public static bool PointInRect(WindowRect windowRect, int x, int y)
+    public static bool IsPointInRect(WindowRect windowRect, int x, int y)
     {
         ArgumentNullExceptionShim.ThrowIfNull(windowRect);
 
