@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using JetBrains.Annotations;
 using PropertyChanged.SourceGenerator;
 using WinSyncScroll.VisualTestUtil.Models;
 
@@ -33,9 +34,16 @@ public sealed partial class MainViewModel
 
     private const int ScrollAreaEllipseSize = 50;
 
+    [UsedImplicitly]
     public string Title { get; } = $"!TEST {RandomNumber}";
+
+    [UsedImplicitly]
     public string ScrollCoordinateMessage => $"Last Scroll: X {XScrollCoordinate}, Y {YScrollCoordinate}";
+
+    [UsedImplicitly]
     public string CursorPositionMessage => $"Current Cursor: X {XCursorPosition}, Y {YCursorPosition}";
+
+    [UsedImplicitly]
     public Visibility ScrollAreaVisibility => XScrollCoordinate > 0 || YScrollCoordinate > 0
         ? Visibility.Visible
         : Visibility.Hidden;
