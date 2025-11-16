@@ -2,6 +2,7 @@
 Scroll two windows simultaneously
 
 [![release](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml/badge.svg)](https://github.com/magicxor/WinSyncScroll/actions/workflows/release.yml)
+![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/magicxor/6ed947906b9d5040b5fa58d0bd56c1f4/raw/WinSyncScroll-cobertura-coverage.json)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/magicxor/WinSyncScroll)
 
 ## Demo
