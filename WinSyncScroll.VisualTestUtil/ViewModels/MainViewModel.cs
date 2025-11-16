@@ -9,16 +9,22 @@ namespace WinSyncScroll.VisualTestUtil.ViewModels;
 public sealed partial class MainViewModel
 {
     [Notify]
-    private int _xScrollCoordinate;
+    private int _lastScrollAbsoluteX;
 
     [Notify]
-    private int _yScrollCoordinate;
+    private int _lastScrollAbsoluteY;
 
     [Notify]
-    private int _xScrollWpfCoordinate;
+    private int _lastScrollWpfX;
 
     [Notify]
-    private int _yScrollWpfCoordinate;
+    private int _lastScrollWpfY;
+
+    [Notify]
+    private int _lastScrollWpfEllipseX;
+
+    [Notify]
+    private int _lastScrollWpfEllipseY;
 
     [Notify]
     private int _xCursorPosition;
@@ -38,23 +44,29 @@ public sealed partial class MainViewModel
     public string Title { get; } = $"!TEST {RandomNumber}";
 
     [UsedImplicitly]
-    public string ScrollCoordinateMessage => $"Last Scroll: X {XScrollCoordinate}, Y {YScrollCoordinate}";
+    public string LastScrollAbsoluteMessage => $"Last Scroll ABS: X {LastScrollAbsoluteX}, Y {LastScrollAbsoluteY}";
 
     [UsedImplicitly]
-    public string CursorPositionMessage => $"Current Cursor: X {XCursorPosition}, Y {YCursorPosition}";
+    public string LastScrollWpfMessage => $"Last Scroll WPF: X {LastScrollWpfX}, Y {LastScrollWpfY}";
 
     [UsedImplicitly]
-    public Visibility ScrollAreaVisibility => XScrollCoordinate > 0 || YScrollCoordinate > 0
+    public string CursorPositionMessage => $"Cursor: X {XCursorPosition}, Y {YCursorPosition}";
+
+    [UsedImplicitly]
+    public Visibility ScrollAreaVisibility => LastScrollAbsoluteX > 0 || LastScrollAbsoluteY > 0
         ? Visibility.Visible
         : Visibility.Hidden;
 
-    public void UpdateLatestScrollCoordinates(int x, int y, int wpfX, int wpfY)
+    public void UpdateLatestScrollCoordinates(int eventAbsoluteX, int eventAbsoluteY, int wpfX, int wpfY)
     {
-        XScrollCoordinate = x;
-        YScrollCoordinate = y;
+        LastScrollAbsoluteX = eventAbsoluteX;
+        LastScrollAbsoluteY = eventAbsoluteY;
 
-        XScrollWpfCoordinate = wpfX - (ScrollAreaEllipseSize / 2);
-        YScrollWpfCoordinate = wpfY - (ScrollAreaEllipseSize / 2);
+        LastScrollWpfX = wpfX;
+        LastScrollWpfY = wpfY;
+
+        LastScrollWpfEllipseX = wpfX - (ScrollAreaEllipseSize / 2);
+        LastScrollWpfEllipseY = wpfY - (ScrollAreaEllipseSize / 2);
     }
 
     public void UpdateCurrentCursorPosition(int x, int y)

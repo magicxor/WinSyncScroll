@@ -96,18 +96,20 @@ public partial class MainWindow : Window
 
         if (msg is WinApiConstants.WM_MOUSEWHEEL or WinApiConstants.WM_MOUSEHWHEEL)
         {
-            var (x, y) = WinApiUtils.GetHiLoWords(lParam);
+            var (eventAbsoluteX, eventAbsoluteY) = WinApiUtils.GetHiLoWords(lParam);
             var (virtualKeys, wheelDelta) = WinApiUtils.GetHiLoWords(wParam);
 
-            var wpfPoint = PointFromScreen(new Point(x, y));
+            var wpfPoint = PointFromScreen(new Point(eventAbsoluteX, eventAbsoluteY));
 
-            _viewModel.UpdateLatestScrollCoordinates(x, y, (int)wpfPoint.X, (int)wpfPoint.Y);
+            _viewModel.UpdateLatestScrollCoordinates(eventAbsoluteX, eventAbsoluteY, (int)wpfPoint.X, (int)wpfPoint.Y);
             _viewModel.AddScrollEvent(new ScrollEventViewModel
             {
                 Timestamp = DateTime.Now,
                 Name = msg == WinApiConstants.WM_MOUSEWHEEL ? "WM_MOUSEWHEEL" : "WM_MOUSEHWHEEL",
-                X = x,
-                Y = y,
+                AbsoluteX = eventAbsoluteX,
+                AbsoluteY = eventAbsoluteY,
+                WpfX = (int)wpfPoint.X,
+                WpfY = (int)wpfPoint.Y,
                 WheelDelta = wheelDelta,
                 VirtualKeys = virtualKeys,
             });
