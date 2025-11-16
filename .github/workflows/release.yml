@@ -43,18 +43,31 @@ jobs:
         env:
           GIT_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
         # replace <Version>0.0.1</Version> with <Version>$GIT_TAG</Version>
-        # in "./WinSyncScroll/WinSyncScroll.csproj"
+        # in "./WinSyncScroll/WinSyncScroll.csproj" and "./WinSyncScroll.VisualTestUtil/WinSyncScroll.VisualTestUtil.csproj"
         run: |
           if [[ -z ${GIT_TAG} ]] || [[ ${GIT_TAG} == refs/heads/* ]]; then exit 1; else appversion=${GIT_TAG}; fi
           sed -i "s/<Version>.*<\/Version>/<Version>${appversion}<\/Version>/" ./WinSyncScroll/WinSyncScroll.csproj
+          sed -i "s/<Version>.*<\/Version>/<Version>${appversion}<\/Version>/" ./WinSyncScroll.VisualTestUtil/WinSyncScroll.VisualTestUtil.csproj
 
-      - name: Build and package
+      - name: Build and package WinSyncScroll
         working-directory: ./WinSyncScroll
+        env:
+          VERSION: ${{ steps.ref_info.outputs.VERSION }}
         run: |
           dotnet publish -c release -r win-x64 --framework net10.0-windows --self-contained
           dotnet publish -c release -r win-x64 --framework net462
-          7z a WinSyncScroll_win-x64_net10.0-windows.zip ./bin/release/net10.0-windows/win-x64/publish/*
-          7z a WinSyncScroll_win-x64_net462.zip ./bin/release/net462/win-x64/publish/*
+          7z a WinSyncScroll_${VERSION}_win-x64_net10.0-windows.zip ./bin/release/net10.0-windows/win-x64/publish/*
+          7z a WinSyncScroll_${VERSION}_win-x64_net462.zip ./bin/release/net462/win-x64/publish/*
+
+      - name: Build and package VisualTestUtil
+        working-directory: ./WinSyncScroll.VisualTestUtil
+        env:
+          VERSION: ${{ steps.ref_info.outputs.VERSION }}
+        run: |
+          dotnet publish -c release -r win-x64 --framework net10.0-windows --self-contained
+          dotnet publish -c release -r win-x64 --framework net462
+          7z a WinSyncScroll.VisualTestUtil_${VERSION}_win-x64_net10.0-windows.zip ./bin/release/net10.0-windows/win-x64/publish/*
+          7z a WinSyncScroll.VisualTestUtil_${VERSION}_win-x64_net462.zip ./bin/release/net462/win-x64/publish/*
 
       - name: Publish
         uses: softprops/action-gh-release@v2
@@ -64,5 +77,7 @@ jobs:
           make_latest: ${{ steps.ref_info.outputs.MAKE_LATEST }}
           generate_release_notes: true
           files: |
-            ./WinSyncScroll/WinSyncScroll_win-x64_net10.0-windows.zip
-            ./WinSyncScroll/WinSyncScroll_win-x64_net462.zip
+            ./WinSyncScroll/WinSyncScroll_*_win-x64_net10.0-windows.zip
+            ./WinSyncScroll/WinSyncScroll_*_win-x64_net462.zip
+            ./WinSyncScroll.VisualTestUtil/WinSyncScroll.VisualTestUtil_*_win-x64_net10.0-windows.zip
+            ./WinSyncScroll.VisualTestUtil/WinSyncScroll.VisualTestUtil_*_win-x64_net462.zip
