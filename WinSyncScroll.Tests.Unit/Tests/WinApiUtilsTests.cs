@@ -11,12 +11,28 @@ public class WinApiUtilsTests
     [TestCase(1, 1)]
     [TestCase(31001, 5)]
     [TestCase(6, 31002)]
+    [TestCase(0, -1)]
+    [TestCase(-1, 0)]
+    [TestCase(-1, -1)]
+    [TestCase(-31001, -5)]
+    [TestCase(-6, -31002)]
     [TestCase(short.MaxValue, 0)]
+    [TestCase(short.MaxValue, 10)]
+    [TestCase(short.MaxValue, -10)]
     [TestCase(0, short.MaxValue)]
+    [TestCase(10, short.MaxValue)]
+    [TestCase(-10, short.MaxValue)]
     [TestCase(short.MaxValue, short.MaxValue)]
+    [TestCase(short.MinValue, 0)]
+    [TestCase(short.MinValue, 10)]
+    [TestCase(short.MinValue, -10)]
+    [TestCase(0, short.MinValue)]
+    [TestCase(10, short.MinValue)]
+    [TestCase(-10, short.MinValue)]
+    [TestCase(short.MinValue, short.MinValue)]
     public void GetHiLoWords_WhenGivenValidLParam_ReturnsExpectedValues(short expectedHiWord, short expectedLoWord)
     {
-        var lParamInt = TestUtils.CreateLParam(expectedHiWord, expectedLoWord);
+        var lParamInt = TestUtils.CreateLParam(unchecked((ushort)expectedHiWord), unchecked((ushort)expectedLoWord));
         var (actualLoWord, actualHiWord) = WinApiUtils.GetHiLoWords(lParamInt);
 
         using (Assert.EnterMultipleScope())
