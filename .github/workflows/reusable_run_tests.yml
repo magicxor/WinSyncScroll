@@ -76,5 +76,5 @@ jobs:
     - name: Create Test Coverage Badge
       uses: gaelgirodon/ci-badges-action@v1
       with:
-        gist-id: 45e3ca73a0c4dcf8685dce0bf047c5b1
+        gist-id: 6ed947906b9d5040b5fa58d0bd56c1f4
         token: ${{ secrets.GIST_AUTH_TOKEN }}
