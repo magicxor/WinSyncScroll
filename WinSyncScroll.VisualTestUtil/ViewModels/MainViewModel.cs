@@ -50,7 +50,7 @@ public sealed partial class MainViewModel
     public string LastScrollWpfMessage => $"Last Scroll WPF: X {LastScrollWpfX}, Y {LastScrollWpfY}";
 
     [UsedImplicitly]
-    public string CursorPositionMessage => $"Cursor: X {XCursorPosition}, Y {YCursorPosition}";
+    public string CursorPositionMessage => $"Cursor ABS: X {XCursorPosition}, Y {YCursorPosition}";
 
     [UsedImplicitly]
     public Visibility ScrollAreaVisibility => LastScrollAbsoluteX > 0 || LastScrollAbsoluteY > 0
