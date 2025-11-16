@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace WinSyncScroll.Common;
+namespace WinSyncScroll.Common.Shim;
 
 public static class ArgumentNullExceptionShim
 {

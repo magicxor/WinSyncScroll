@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PropertyChanged.SourceGenerator;
 using WinSyncScroll.Common;
+using WinSyncScroll.Common.Models;
+using WinSyncScroll.Common.Utils;
 using WinSyncScroll.Enums;
 using WinSyncScroll.Extensions;
 using WinSyncScroll.Models;

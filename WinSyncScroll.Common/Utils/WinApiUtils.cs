@@ -1,6 +1,8 @@
 ﻿using System;
+using WinSyncScroll.Common.Models;
+using WinSyncScroll.Common.Shim;
 
-namespace WinSyncScroll.Common;
+namespace WinSyncScroll.Common.Utils;
 
 public static class WinApiUtils
 {

@@ -1,4 +1,4 @@
-﻿namespace WinSyncScroll.VisualTestUtil;
+﻿namespace WinSyncScroll.VisualTestUtil.Models;
 
 public sealed class ScrollEventViewModel
 {

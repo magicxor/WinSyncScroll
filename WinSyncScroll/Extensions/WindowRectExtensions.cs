@@ -1,4 +1,5 @@
 ﻿using WinSyncScroll.Common;
+using WinSyncScroll.Common.Models;
 
 namespace WinSyncScroll.Extensions;
 

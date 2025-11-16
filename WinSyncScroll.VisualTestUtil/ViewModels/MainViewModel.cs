@@ -1,8 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using PropertyChanged.SourceGenerator;
+using WinSyncScroll.VisualTestUtil.Models;
 
-namespace WinSyncScroll.VisualTestUtil;
+namespace WinSyncScroll.VisualTestUtil.ViewModels;
 
 public sealed partial class MainViewModel
 {
