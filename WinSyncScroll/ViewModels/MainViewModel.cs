@@ -5,7 +5,6 @@ using System.Threading.Channels;
 using System.Windows.Data;
 using System.Windows.Threading;
 using Windows.Win32;
-using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using CommunityToolkit.Mvvm.Input;
