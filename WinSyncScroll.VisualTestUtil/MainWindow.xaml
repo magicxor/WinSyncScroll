@@ -23,8 +23,8 @@
                              Stroke="Black"
                              StrokeThickness="4"
                              Visibility="{Binding ScrollAreaVisibility}"
-                             Canvas.Left="{Binding XScrollWpfCoordinate}"
-                             Canvas.Top="{Binding YScrollWpfCoordinate}" />
+                             Canvas.Left="{Binding LastScrollWpfEllipseX}"
+                             Canvas.Top="{Binding LastScrollWpfEllipseY}" />
                 </Canvas>
             </DockPanel>
         </Grid>
@@ -32,8 +32,11 @@
         <!-- Main content -->
         <Grid>
             <DockPanel Grid.Row="0" Grid.Column="0" LastChildFill="True">
-                <Label DockPanel.Dock="Top" Content="{Binding ScrollCoordinateMessage}" />
-                <Label DockPanel.Dock="Top" Content="{Binding CursorPositionMessage}" />
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                    <Label Width="Auto" Content="{Binding LastScrollAbsoluteMessage}" />
+                    <Label Width="Auto" Content="{Binding LastScrollWpfMessage}" />
+                    <Label Width="Auto" Content="{Binding CursorPositionMessage}" />
+                </StackPanel>
 
                 <DataGrid FontSize="14" ItemsSource="{Binding ScrollEvents}"
                           ScrollViewer.CanContentScroll="True"
@@ -56,10 +59,12 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Binding="{Binding Timestamp}" IsReadOnly="True" Header="Timestamp" Width="2*" />
                         <DataGridTextColumn Binding="{Binding Name}" IsReadOnly="True" Header="Event" Width="2*" />
-                        <DataGridTextColumn Binding="{Binding X}" IsReadOnly="True" Header="X" Width="1*" />
-                        <DataGridTextColumn Binding="{Binding Y}" IsReadOnly="True" Header="Y" Width="1*" />
-                        <DataGridTextColumn Binding="{Binding WheelDelta}" IsReadOnly="True" Header="Wheel Delta" Width="1*" />
-                        <DataGridTextColumn Binding="{Binding VirtualKeys}" IsReadOnly="True" Header="Virtual Keys" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding AbsoluteX}" IsReadOnly="True" Header="ABS X" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding AbsoluteY}" IsReadOnly="True" Header="ABS Y" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding WpfX}" IsReadOnly="True" Header="WPF X" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding WpfY}" IsReadOnly="True" Header="WPF Y" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding WheelDelta}" IsReadOnly="True" Header="Delta" Width="1*" />
+                        <DataGridTextColumn Binding="{Binding VirtualKeys}" IsReadOnly="True" Header="Keys" Width="1*" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

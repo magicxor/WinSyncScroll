@@ -6,6 +6,16 @@ namespace WinSyncScroll.Common.Utils;
 
 public static class WinApiUtils
 {
+    public static IntPtr CreateLParam(short hiWord, short loWord)
+    {
+        return CreateLParam(unchecked((ushort)hiWord), unchecked((ushort)loWord));
+    }
+
+    public static IntPtr CreateLParam(ushort hiWord, ushort loWord)
+    {
+        return (IntPtr)((hiWord << 16) | (loWord & 0xFFFF));
+    }
+
     public static (short Low, short High) GetHiLoWords(IntPtr value)
     {
         uint xy = unchecked(IntPtr.Size == 8 ? (uint)value.ToInt64() : (uint)value.ToInt32());

@@ -15,6 +15,7 @@ MAKEWPARAM
 MulDiv
 SendInput
 SendMessage
+PostMessage
 SetWindowsHookExW
 UnhookWindowsHookEx
 WindowFromPoint

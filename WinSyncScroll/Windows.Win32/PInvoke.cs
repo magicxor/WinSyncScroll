@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
-using WinSyncScroll.Common;
 using WinSyncScroll.Common.Models;
 using WinSyncScroll.Exceptions;
 

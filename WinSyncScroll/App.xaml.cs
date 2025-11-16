@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,13 @@ public sealed partial class App : Application
         {
             var serviceProvider = ContainerConfigurationUtils.CreateServiceProvider();
             Logger = serviceProvider.GetRequiredService<ILogger<App>>();
-            Logger?.LogDebug("Start {Name} on {MachineName} as {UserName}", Assembly.GetExecutingAssembly().GetName().Name, Environment.MachineName, Environment.UserName);
+
+            Logger?.LogInformation("Starting WinSyncScroll v{AppVersion}, OS: {OSVersion}, Runtime: {RuntimeFramework}, Architecture: {CpuArchitecture}, Processor count: {ProcessorCount}",
+                Assembly.GetExecutingAssembly().GetName().Version,
+                RuntimeInformation.OSDescription.Trim(),
+                RuntimeInformation.FrameworkDescription.Trim(),
+                RuntimeInformation.ProcessArchitecture,
+                Environment.ProcessorCount);
 
             try
             {
