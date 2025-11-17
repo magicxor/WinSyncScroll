@@ -61,6 +61,8 @@ public sealed partial class MainViewModel : IDisposable
 
     public string IsLegacyModeStatusText => $"Legacy mode: {(_options.Value.IsLegacyModeEnabled ? "ON" : "OFF")}";
 
+    public string LegacyModeBehaviourStatusText => $"Legacy mode behaviour: {_options.Value.LegacyModeBehaviour}";
+
     public string CurrentRuntimeInfoText { get; set; } = $"Runtime: {RuntimeInformation.FrameworkDescription}";
 
     public string CurrentOperatingSystemInfoText { get; set; } = $"OS: {RuntimeInformation.OSDescription}";
@@ -346,7 +348,14 @@ public sealed partial class MainViewModel : IDisposable
                     else
                     {
                         var childWindows = EnumChildWindows((HWND)Target.WindowHandle);
-                        List<HWND> allWindows = [(HWND)Target.WindowHandle, ..childWindows];
+
+                        var allWindows = _options.Value.LegacyModeBehaviour switch
+                        {
+                            LegacyModeBehaviour.ParentOnly => [(HWND)Target.WindowHandle],
+                            LegacyModeBehaviour.ChildrenOnly => childWindows,
+                            LegacyModeBehaviour.Both => [(HWND)Target.WindowHandle, ..childWindows],
+                            _ => [(HWND)Target.WindowHandle, ..childWindows],
+                        };
 
                         // WM_MOUSEWHEEL and WM_MOUSEHWHEEL require screen coordinates in lParam, not client coordinates
                         var lParam = PInvoke.MAKELPARAM(unchecked((ushort)(short)targetX), unchecked((ushort)(short)targetY));
