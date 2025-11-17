@@ -142,6 +142,7 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal">
             <Label Width="Auto" Content="{Binding IsStrictProcessIdCheckStatusText}"></Label>
             <Label Width="Auto" Content="{Binding IsLegacyModeStatusText}"></Label>
+            <Label Width="Auto" Content="{Binding LegacyModeBehaviourStatusText}"></Label>
             <Label Width="Auto" Content="{Binding CurrentRuntimeInfoText}"></Label>
             <Label Width="Auto" Content="{Binding CurrentOperatingSystemInfoText}"></Label>
         </StackPanel>
