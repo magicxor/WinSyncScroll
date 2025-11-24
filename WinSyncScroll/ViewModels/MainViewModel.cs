@@ -95,8 +95,8 @@ public sealed partial class MainViewModel : IDisposable
     private Task? _mouseEventProcessingLoopTask;
     private Task? _updateMouseHookRectsLoopTask;
 
-    private int _smCxScreen;
-    private int _smCyScreen;
+    private int _smCxVirtualScreen;
+    private int _smCyVirtualScreen;
 
     private static readonly int SizeOfInput = Marshal.SizeOf<INPUT>();
 
@@ -144,8 +144,8 @@ public sealed partial class MainViewModel : IDisposable
         };
         var dwFlags = mouseMessageId switch
         {
-            WinApiConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
-            WinApiConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            WinApiConstants.WM_MOUSEWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_WHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_VIRTUALDESK | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
+            WinApiConstants.WM_MOUSEHWHEEL => MOUSE_EVENT_FLAGS.MOUSEEVENTF_HWHEEL | MOUSE_EVENT_FLAGS.MOUSEEVENTF_VIRTUALDESK | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE,
             _ => MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
         };
         inputScroll.Anonymous.mi.dwFlags = dwFlags;
@@ -164,7 +164,7 @@ public sealed partial class MainViewModel : IDisposable
         {
             type = INPUT_TYPE.INPUT_MOUSE,
         };
-        inputMove.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE;
+        inputMove.Anonymous.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_VIRTUALDESK | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE_NOCOALESCE;
         inputMove.Anonymous.mi.time = 0;
         inputMove.Anonymous.mi.mouseData = 0;
         inputMove.Anonymous.mi.dx = absoluteX;
@@ -177,8 +177,8 @@ public sealed partial class MainViewModel : IDisposable
     private (int X, int Y) CalculateAbsoluteCoordinates(int x, int y)
     {
         return (
-            X: PInvoke.MulDiv(x, 65536, _smCxScreen),
-            Y: PInvoke.MulDiv(y, 65536, _smCyScreen)
+            X: PInvoke.MulDiv(x, 65536, _smCxVirtualScreen),
+            Y: PInvoke.MulDiv(y, 65536, _smCyVirtualScreen)
         );
     }
 
@@ -320,7 +320,7 @@ public sealed partial class MainViewModel : IDisposable
                     var (sourceAbsoluteX, sourceAbsoluteY) = CalculateAbsoluteCoordinates(sourceEventX, sourceEventY);
                     var (targetAbsoluteX, targetAbsoluteY) = CalculateAbsoluteCoordinates(targetX, targetY);
 
-                    _logger.LogTrace("Converted coordinates: Source=({SourceEventX},{SourceEventY}) -> ({SourceAbsoluteX},{SourceAbsoluteY}), Target=({TargetX},{TargetY}) -> ({TargetAbsoluteX},{TargetAbsoluteY}). _smCxScreen={SmCxScreen}, _smCyScreen={SmCyScreen}",
+                    _logger.LogTrace("Converted coordinates: Source=({SourceEventX},{SourceEventY}) -> ({SourceAbsoluteX},{SourceAbsoluteY}), Target=({TargetX},{TargetY}) -> ({TargetAbsoluteX},{TargetAbsoluteY}). VirtualScreen={SmCxVirtualScreen}x{SmCyVirtualScreen}",
                         sourceEventX,
                         sourceEventY,
                         sourceAbsoluteX,
@@ -329,8 +329,8 @@ public sealed partial class MainViewModel : IDisposable
                         targetY,
                         targetAbsoluteX,
                         targetAbsoluteY,
-                        _smCxScreen,
-                        _smCyScreen);
+                        _smCxVirtualScreen,
+                        _smCyVirtualScreen);
 
                     var inputMoveToTarget = CreateMoveInput(targetAbsoluteX, targetAbsoluteY);
                     var inputScrollTarget = CreateScrollInput(buffer.MouseMessageId, targetAbsoluteX, targetAbsoluteY, delta);
@@ -518,8 +518,9 @@ public sealed partial class MainViewModel : IDisposable
         {
             _logger.LogInformation("Starting scroll sync between \"{SourceWindow}\" and \"{TargetWindow}\"", Source.DisplayName, Target.DisplayName);
 
-            _smCxScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
-            _smCyScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
+            _smCxVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXVIRTUALSCREEN);
+            _smCyVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYVIRTUALSCREEN);
+            _logger.LogDebug("Virtual screen dimensions: {Width}x{Height}", _smCxVirtualScreen, _smCyVirtualScreen);
 
             AppState = AppState.Running;
         }
