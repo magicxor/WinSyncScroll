@@ -95,6 +95,8 @@ public sealed partial class MainViewModel : IDisposable
     private Task? _mouseEventProcessingLoopTask;
     private Task? _updateMouseHookRectsLoopTask;
 
+    private int _smXVirtualScreen;
+    private int _smYVirtualScreen;
     private int _smCxVirtualScreen;
     private int _smCyVirtualScreen;
 
@@ -176,9 +178,11 @@ public sealed partial class MainViewModel : IDisposable
 
     private (int X, int Y) CalculateAbsoluteCoordinates(int x, int y)
     {
+        // Convert screen coordinates to absolute coordinates for SendInput
+        // Formula: ((coordinate - virtualScreenOffset) * 65536) / virtualScreenSize
         return (
-            X: PInvoke.MulDiv(x, 65536, _smCxVirtualScreen),
-            Y: PInvoke.MulDiv(y, 65536, _smCyVirtualScreen)
+            X: PInvoke.MulDiv(x - _smXVirtualScreen, 65536, _smCxVirtualScreen),
+            Y: PInvoke.MulDiv(y - _smYVirtualScreen, 65536, _smCyVirtualScreen)
         );
     }
 
@@ -518,9 +522,15 @@ public sealed partial class MainViewModel : IDisposable
         {
             _logger.LogInformation("Starting scroll sync between \"{SourceWindow}\" and \"{TargetWindow}\"", Source.DisplayName, Target.DisplayName);
 
+            _smXVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_XVIRTUALSCREEN);
+            _smYVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_YVIRTUALSCREEN);
             _smCxVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXVIRTUALSCREEN);
             _smCyVirtualScreen = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYVIRTUALSCREEN);
-            _logger.LogDebug("Virtual screen dimensions: {Width}x{Height}", _smCxVirtualScreen, _smCyVirtualScreen);
+            _logger.LogDebug("Virtual screen: offset=({XOffset},{YOffset}), size={Width}x{Height}",
+                _smXVirtualScreen,
+                _smYVirtualScreen,
+                _smCxVirtualScreen,
+                _smCyVirtualScreen);
 
             AppState = AppState.Running;
         }
