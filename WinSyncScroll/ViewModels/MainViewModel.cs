@@ -382,7 +382,20 @@ public sealed partial class MainViewModel : IDisposable
                                 lParam,
                                 targetX,
                                 targetY);
-                            PInvoke.PostMessage(windowHandle, (uint)buffer.MouseMessageId, (nuint)buffer.MouseMessageData.mouseData, lParam);
+                            
+                            var result = PInvoke.PostMessage(windowHandle, (uint)buffer.MouseMessageId, (nuint)buffer.MouseMessageData.mouseData, lParam);
+                            
+                            if (!result)
+                            {
+                                var lastError = Marshal.GetLastWin32Error();
+                                _logger.LogError("PostMessage failed for window {WindowHandle}: Last Win32 error: {LastError}",
+                                    windowHandle,
+                                    lastError);
+                            }
+                            else
+                            {
+                                _logger.LogTrace("Successfully posted message to window {WindowHandle}", windowHandle);
+                            }
                         }
                     }
                 }
