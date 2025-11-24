@@ -57,7 +57,7 @@ public sealed class WinApiService
 
                 var className = PInvoke.GetClassName(windowHandle);
                 var windowName = PInvoke.GetWindowText(windowHandle);
-                var process = Process.GetProcessById((int)processId);
+                using var process = Process.GetProcessById((int)processId);
                 var processName = process.ProcessName;
 
                 if (string.IsNullOrWhiteSpace(windowName))
