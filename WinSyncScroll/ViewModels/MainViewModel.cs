@@ -343,7 +343,20 @@ public sealed partial class MainViewModel : IDisposable
                     if (!_options.Value.IsLegacyModeEnabled)
                     {
                         LogSendInput(inputs);
-                        PInvoke.SendInput(inputs.AsSpan(), SizeOfInput);
+                        var sentCount = PInvoke.SendInput(inputs.AsSpan(), SizeOfInput);
+                        
+                        if (sentCount != inputs.Length)
+                        {
+                            var lastError = Marshal.GetLastWin32Error();
+                            _logger.LogError("SendInput failed: expected to send {ExpectedCount} events, but only {SentCount} were sent. Last Win32 error: {LastError}",
+                                inputs.Length,
+                                sentCount,
+                                lastError);
+                        }
+                        else
+                        {
+                            _logger.LogTrace("Successfully sent {SentCount} input events", sentCount);
+                        }
                     }
                     else
                     {
