@@ -545,6 +545,39 @@ public sealed partial class MainViewModel : IDisposable
         }
     }
 
+    private void WaitForTaskCompletion(Task? task, string taskName, TimeSpan timeout)
+    {
+#pragma warning disable VSTHRD002 // Synchronously waiting is acceptable in Dispose method
+        try
+        {
+            if (task is not null
+                && !task.IsCompleted
+                && !task.Wait(timeout))
+            {
+                _logger.LogWarning("{TaskName} did not complete within timeout", taskName);
+            }
+        }
+        catch (AggregateException ae)
+        {
+            ae.Handle(ex =>
+            {
+                if (ex is OperationCanceledException)
+                {
+                    _logger.LogDebug("{TaskName} was cancelled", taskName);
+                    return true;
+                }
+
+                _logger.LogError(ex, "Error waiting for {TaskName} to complete", taskName);
+                return true;
+            });
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error waiting for {TaskName} to complete", taskName);
+        }
+#pragma warning restore VSTHRD002
+    }
+
     public void Dispose()
     {
         AppState = AppState.NotRunning;
@@ -560,63 +593,8 @@ public sealed partial class MainViewModel : IDisposable
         // Wait for tasks to complete before disposing resources
         // Using Task.Wait in Dispose is acceptable as this is a shutdown scenario
         // and we need to ensure tasks complete before disposing underlying resources
-#pragma warning disable VSTHRD002 // Synchronously waiting is acceptable in Dispose method
-        try
-        {
-            if (_updateMouseHookRectsLoopTask is not null
-                && !_updateMouseHookRectsLoopTask.IsCompleted
-                && !_updateMouseHookRectsLoopTask.Wait(TimeSpan.FromSeconds(5)))
-            {
-                _logger.LogWarning("Update mouse hook rects loop task did not complete within timeout");
-            }
-        }
-        catch (AggregateException ae)
-        {
-            ae.Handle(ex =>
-            {
-                if (ex is OperationCanceledException)
-                {
-                    _logger.LogDebug("Update mouse hook rects loop was cancelled");
-                    return true;
-                }
-
-                _logger.LogError(ex, "Error waiting for update mouse hook rects loop task");
-                return true;
-            });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error disposing update mouse hook rects loop task");
-        }
-
-        try
-        {
-            if (_mouseEventProcessingLoopTask is not null
-                && !_mouseEventProcessingLoopTask.IsCompleted
-                && !_mouseEventProcessingLoopTask.Wait(TimeSpan.FromSeconds(5)))
-            {
-                _logger.LogWarning("Mouse event processing loop task did not complete within timeout");
-            }
-        }
-        catch (AggregateException ae)
-        {
-            ae.Handle(ex =>
-            {
-                if (ex is OperationCanceledException)
-                {
-                    _logger.LogDebug("Mouse event processing loop was cancelled");
-                    return true;
-                }
-
-                _logger.LogError(ex, "Error waiting for mouse event processing loop task");
-                return true;
-            });
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error disposing mouse event processing loop task");
-        }
-#pragma warning restore VSTHRD002
+        WaitForTaskCompletion(_updateMouseHookRectsLoopTask, "Update mouse hook rects loop task", TimeSpan.FromSeconds(5));
+        WaitForTaskCompletion(_mouseEventProcessingLoopTask, "Mouse event processing loop task", TimeSpan.FromSeconds(5));
 
         // Dispose tasks after they have completed
         _updateMouseHookRectsLoopTask?.Dispose();
