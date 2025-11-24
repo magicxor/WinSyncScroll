@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Channels;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -25,9 +26,9 @@ public sealed class MouseHook : IDisposable
     private FreeLibrarySafeHandle? _moduleHandle;
     private HOOKPROC? _hookProc;
 
-    private volatile WindowRect? _sourceRect;
-    private volatile WindowRect? _targetRect;
-    private volatile DateTimeObj _preventRealScrollEvents = new(DateTime.MinValue);
+    private WindowRect? _sourceRect;
+    private WindowRect? _targetRect;
+    private DateTimeObj _preventRealScrollEvents = new(DateTime.MinValue);
 
     public Channel<MouseMessageInfo> HookEvents { get; } = Channel.CreateUnbounded<MouseMessageInfo>();
 
@@ -47,7 +48,8 @@ public sealed class MouseHook : IDisposable
 
     private bool IsPreventRealScrollEventsActive()
     {
-        return _preventRealScrollEvents.DateTime.AddMilliseconds(200) >= DateTime.UtcNow;
+        var preventTime = Volatile.Read(ref _preventRealScrollEvents);
+        return preventTime.DateTime.AddMilliseconds(200) >= DateTime.UtcNow;
     }
 
     /// <summary>
@@ -96,27 +98,33 @@ public sealed class MouseHook : IDisposable
                 // we have nothing to do with injected events
                 _logger.LogTrace("Ignoring injected mouse event: {MouseLowLevelData}", mouseLowLevelData.ToLogString());
             }
-            else if (_sourceRect is not null
-                     && WinApiUtils.IsPointInRect(_sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
-                     && (wParam == WinApiConstants.WM_MOUSEWHEEL
-                         || wParam == WinApiConstants.WM_MOUSEHWHEEL))
+            else
             {
-                // we should process scroll events in this area
-                _logger.LogTrace("Mouse scroll event in source rect: {MouseLowLevelData}", mouseLowLevelData.ToLogString());
-                HookEvents.Writer.TryWrite(new MouseMessageInfo(wParam, mouseLowLevelData));
-            }
-            else if (IsPreventRealScrollEventsActive()
-                     && _targetRect is not null
-                     && WinApiUtils.IsPointInRect(_targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
-            {
-                // prevent the system from passing the message to the rest of the hook chain or the target window procedure
-                _logger.LogTrace("Preventing real scroll events in target rect: {MouseLowLevelData}", mouseLowLevelData.ToLogString());
-                return (LRESULT)1;
-            }
-            else if (wParam == WinApiConstants.WM_MOUSEWHEEL
-                     || wParam == WinApiConstants.WM_MOUSEHWHEEL)
-            {
-                _logger.LogTrace("Ignoring mouse event: {MouseLowLevelData}, because it is not in source rect: {SourceRect}", mouseLowLevelData.ToLogString(), _sourceRect.ToLogString());
+                var sourceRect = Volatile.Read(ref _sourceRect);
+                var targetRect = Volatile.Read(ref _targetRect);
+
+                if (sourceRect is not null
+                    && WinApiUtils.IsPointInRect(sourceRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y)
+                    && (wParam == WinApiConstants.WM_MOUSEWHEEL
+                        || wParam == WinApiConstants.WM_MOUSEHWHEEL))
+                {
+                    // we should process scroll events in this area
+                    _logger.LogTrace("Mouse scroll event in source rect: {MouseLowLevelData}", mouseLowLevelData.ToLogString());
+                    HookEvents.Writer.TryWrite(new MouseMessageInfo(wParam, mouseLowLevelData));
+                }
+                else if (IsPreventRealScrollEventsActive()
+                         && targetRect is not null
+                         && WinApiUtils.IsPointInRect(targetRect, mouseLowLevelData.pt.X, mouseLowLevelData.pt.Y))
+                {
+                    // prevent the system from passing the message to the rest of the hook chain or the target window procedure
+                    _logger.LogTrace("Preventing real scroll events in target rect: {MouseLowLevelData}", mouseLowLevelData.ToLogString());
+                    return (LRESULT)1;
+                }
+                else if (wParam == WinApiConstants.WM_MOUSEWHEEL
+                         || wParam == WinApiConstants.WM_MOUSEHWHEEL)
+                {
+                    _logger.LogTrace("Ignoring mouse event: {MouseLowLevelData}, because it is not in source rect: {SourceRect}", mouseLowLevelData.ToLogString(), sourceRect.ToLogString());
+                }
             }
         }
 
@@ -126,18 +134,18 @@ public sealed class MouseHook : IDisposable
     public void SetSourceRect(WindowRect? rect)
     {
         // _logger.LogTrace("Setting source rect: {SourceRect}", rect.ToLogString());
-        _sourceRect = rect;
+        Interlocked.Exchange(ref _sourceRect, rect);
     }
 
     public void SetTargetRect(WindowRect? rect)
     {
         // _logger.LogTrace("Setting target rect: {TargetRect}", rect.ToLogString());
-        _targetRect = rect;
+        Interlocked.Exchange(ref _targetRect, rect);
     }
 
     public void SetPreventRealScrollEvents()
     {
-        _preventRealScrollEvents = new DateTimeObj(DateTime.UtcNow);
+        Interlocked.Exchange(ref _preventRealScrollEvents, new DateTimeObj(DateTime.UtcNow));
     }
 
     public void Install()
