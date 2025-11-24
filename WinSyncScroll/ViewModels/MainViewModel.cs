@@ -547,7 +547,7 @@ public sealed partial class MainViewModel : IDisposable
 
     private void WaitForTaskCompletion(Task? task, string taskName, TimeSpan timeout)
     {
-#pragma warning disable VSTHRD002 // Synchronously waiting is acceptable in Dispose method
+#pragma warning disable VSTHRD002 // Synchronously waiting is acceptable in shutdown scenarios
         try
         {
             if (task is not null
