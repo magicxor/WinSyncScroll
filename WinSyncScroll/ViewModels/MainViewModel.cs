@@ -551,7 +551,6 @@ public sealed partial class MainViewModel : IDisposable
         try
         {
             if (task is not null
-                && !task.IsCompleted
                 && !task.Wait(timeout))
             {
                 _logger.LogWarning("{TaskName} did not complete within timeout", taskName);
