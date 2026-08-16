@@ -70,7 +70,7 @@ jobs:
           7z a WinSyncScroll.VisualTestUtil_${VERSION}_win-x64_net462.zip ./bin/release/net462/win-x64/publish/*
 
       - name: Publish
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           prerelease: ${{ steps.ref_info.outputs.IS_PRERELEASE }}
